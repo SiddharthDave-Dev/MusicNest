@@ -15,8 +15,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
-        
+
         self.setupSwiftData()
+        self.createDefaultPlaylistIfNeeded()
         
         return true
     }
@@ -37,12 +38,43 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func setupSwiftData() {
         do {
-            AppDelegate.sharedContainer = try ModelContainer(for: MusicModel.self)
+//            AppDelegate.sharedContainer = try ModelContainer(for: MusicModel.self)
+            AppDelegate.sharedContainer = try ModelContainer(for: MusicModel.self, PlaylistModel.self, PlaylistMusicModel.self)
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
     }
 
 
+    func createDefaultPlaylistIfNeeded() {
+        let context = AppDelegate.sharedContainer.mainContext
+
+        // Check if a playlist with name "Playlist" already exists
+        let predicate = #Predicate<PlaylistModel> { $0.playlistName == "Playlist" }
+        let descriptor = FetchDescriptor<PlaylistModel>(predicate: predicate)
+
+        do {
+            let existing = try context.fetch(descriptor)
+
+            if existing.isEmpty {
+                // Create default playlist
+                let defaultPlaylist = PlaylistModel(
+                    id: UUID(),
+                    playlistName: "Playlist",
+                    musicData: [],
+                    createdAt: Date()
+                )
+                context.insert(defaultPlaylist)
+                try context.save()
+                print("✅ Default playlist created.")
+            } else {
+                print("ℹ️ Default playlist already exists.")
+            }
+        } catch {
+            print("❌ Failed to create default playlist: \(error)")
+        }
+    }
+
+    
 }
 

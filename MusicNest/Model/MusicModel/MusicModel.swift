@@ -38,13 +38,15 @@ class MusicModel: ObservableObject {
     var audioData: Data  // ✅ New
     var artist: String
     var date: Date
+    var isFavourite: Bool
 
-    init(title: String, imageData: Data, audioData: Data, artist: String, date: Date = Date()) {
+    init(title: String, imageData: Data, audioData: Data, artist: String, date: Date = Date(), isFavourite: Bool) {
         self.id = UUID()
         self.title = title
         self.imageData = imageData
         self.audioData = audioData
         self.artist = artist
         self.date = date
+        self.isFavourite = isFavourite
     }
 }

@@ -65,7 +65,7 @@ class HomeVC: UIViewController {
     private func setUp() {
         self.container = AppDelegate.sharedContainer
         
-        self.originalData = self.fetchBusinessIdeas()
+        self.originalData = self.fetchMusic()
         self.data = self.originalData
         self.sortView.cornerRadius = 10
         self.sortView.backgroundColor = .systemGray.withAlphaComponent(0.5)
@@ -81,9 +81,11 @@ class HomeVC: UIViewController {
         self.tableView.dataSource = self
     }
     
-    func fetchBusinessIdeas() -> [MusicModel] {
+    func fetchMusic() -> [MusicModel] {
         let context = container.mainContext
-        let fetchDescriptor = FetchDescriptor<MusicModel>()
+        let fetchDescriptor = FetchDescriptor<MusicModel>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
         
         do {
             let ideas = try context.fetch(fetchDescriptor)
@@ -94,6 +96,7 @@ class HomeVC: UIViewController {
             return []
         }
     }
+
     
     private func setupSortMenu() {
         let dateAction = UIAction(
@@ -193,6 +196,13 @@ class HomeVC: UIViewController {
         }
     }
 
+    
+    func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        self.present(alert, animated: true)
+    }
+
     class func fetchInstance() -> Self {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         return storyboard.instantiateViewController(withIdentifier: "\(Self.self)") as! Self
@@ -228,14 +238,8 @@ extension HomeVC: UITableViewDelegate, UITableViewDataSource {
         // Find the index in originalData
         if let originalIndex = self.originalData.firstIndex(where: { $0.id == selectedMusic.id }) {
             print("Selected index in originalData: \(originalIndex)")
-            
-            // Optional: scroll to that index in a tableView if needed
-            // self.tableView.scrollToRow(at: IndexPath(row: originalIndex, section: 0), at: .middle, animated: true)
-            
             self.delegate?.didSelectMusic(self.originalData, currentMusicIndex: originalIndex)
         }
-
-//        self.delegate?.didSelectMusic(self.originalData, currentMusicIndex: originalIndex)
     }
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
@@ -251,6 +255,48 @@ extension HomeVC: UITableViewDelegate, UITableViewDataSource {
             tableView.endUpdates()
         }
     }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let musicData = data[indexPath.row]
+
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let favoriteAction = UIAction(
+                title: "Favorite",
+                image: UIImage(systemName: "heart")) { [weak self] _ in
+                    guard let self = self else { return }
+
+                    if musicData.isFavourite {
+                        self.showAlert(title: "Already a Favorite", message: "\(musicData.title) is already marked as favorite.")
+                    } else {
+                        musicData.isFavourite = true
+                        // Optional: Save change to SwiftData here
+                        self.showAlert(title: "Added to Favorites", message: "\(musicData.title) has been added to favorites.")
+                    }
+                }
+
+            let playlistAction = UIAction(
+                title: "Add to Playlist",
+                image: UIImage(systemName: "music.note.list")) { [weak self] _ in
+//                    self?.showPlaylistInput(for: musicData)
+                    
+                    let addPlaylistVC = AddPlaylistVC.fetchInstance()
+
+                    if let sheet = addPlaylistVC.sheetPresentationController {
+                        sheet.detents = [.medium(), .large()]
+                        sheet.prefersGrabberVisible = true
+                    }
+
+                    addPlaylistVC.musicData = musicData
+                    
+                    self?.present(addPlaylistVC, animated: true)
+
+                }
+
+            return UIMenu(title: "", children: [favoriteAction, playlistAction])
+        }
+    }
+
+
 
 
 }

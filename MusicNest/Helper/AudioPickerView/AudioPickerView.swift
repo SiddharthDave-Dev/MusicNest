@@ -104,7 +104,7 @@ class AudioPickerView: UIView, UIDocumentPickerDelegate {
         }
 
         // 💾 Insert new music
-        let music = MusicModel(title: title, imageData: imageData, audioData: audioData, artist: artist)
+        let music = MusicModel(title: title, imageData: imageData, audioData: audioData, artist: artist, isFavourite: false)
         modelContext.insert(music)
 
         do {

@@ -15,9 +15,10 @@ class SettingsVC: UIViewController {
     weak var delegate: SettingsVCDelegate?
     
     var settingsData: [SettingsModel] = [
-        SettingsModel(id: 1, title: "Privacy Policy"),
-        SettingsModel(id: 2, title: "Terms & Conditions"),
-        SettingsModel(id: 3, title: "Select Music"),
+        SettingsModel(id: 1, title: "Your Favorite Music"),
+        SettingsModel(id: 2, title: "Privacy Policy"),
+        SettingsModel(id: 3, title: "Terms & Conditions"),
+        SettingsModel(id: 4, title: "Select Music")
     ]
     
     override func viewDidLoad() {
@@ -67,10 +68,17 @@ extension SettingsVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let data = self.settingsData[indexPath.row]
         
-        if data.id == 3 {
+        if data.id == 1 {
+            let favoriteVC = FavoriteVC.fetchInstance()
+            favoriteVC.modalPresentationStyle = .overFullScreen
+            favoriteVC.modalTransitionStyle = .crossDissolve
+            self.present(favoriteVC, animated: true)
+        } else if data.id == 4 {
             let pickerView = AudioPickerView(container: AppDelegate.sharedContainer, presentingVC: self)
             pickerView.delegate = self
             self.view.addSubview(pickerView)
+        } else {
+            
         }
     }
 }

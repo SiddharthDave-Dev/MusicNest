@@ -6,14 +6,18 @@
 //
 
 import UIKit
+import SwiftData
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-
+    static var sharedContainer: ModelContainer!
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        
+        
+        self.setupSwiftData()
+        
         return true
     }
 
@@ -29,6 +33,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the user discards a scene session.
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
+    }
+
+    func setupSwiftData() {
+        do {
+            AppDelegate.sharedContainer = try ModelContainer(for: MusicModel.self)
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
     }
 
 

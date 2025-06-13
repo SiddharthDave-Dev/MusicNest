@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		9FC7B1E42DF9FD6500F32C42 /* Reusable in Frameworks */ = {isa = PBXBuildFile; productRef = 9FC7B1E32DF9FD6500F32C42 /* Reusable */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		9FC7B1A82DF9FD2100F32C42 /* MusicNest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MusicNest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9FC7B1E42DF9FD6500F32C42 /* Reusable in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = MusicNest;
 			packageProductDependencies = (
+				9FC7B1E32DF9FD6500F32C42 /* Reusable */,
 			);
 			productName = MusicNest;
 			productReference = 9FC7B1A82DF9FD2100F32C42 /* MusicNest.app */;
@@ -107,6 +113,9 @@
 			);
 			mainGroup = 9FC7B19F2DF9FD2100F32C42;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9FC7B1E22DF9FD6500F32C42 /* XCRemoteSwiftPackageReference "Reusable" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9FC7B1A92DF9FD2100F32C42 /* Products */;
 			projectDirPath = "";
@@ -148,6 +157,8 @@
 				DEVELOPMENT_TEAM = 7UD34SRL95;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MusicNest/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Music Nest";
+				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "We need access to open audio files.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -176,6 +187,8 @@
 				DEVELOPMENT_TEAM = 7UD34SRL95;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MusicNest/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Music Nest";
+				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "We need access to open audio files.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -337,6 +350,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9FC7B1E22DF9FD6500F32C42 /* XCRemoteSwiftPackageReference "Reusable" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SiddharthDave-Dev/Reusable.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9FC7B1E32DF9FD6500F32C42 /* Reusable */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FC7B1E22DF9FD6500F32C42 /* XCRemoteSwiftPackageReference "Reusable" */;
+			productName = Reusable;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9FC7B1A02DF9FD2100F32C42 /* Project object */;
 }

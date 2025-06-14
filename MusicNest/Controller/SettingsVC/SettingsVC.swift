@@ -13,6 +13,7 @@ class SettingsVC: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     
     weak var delegate: SettingsVCDelegate?
+    weak var songDelegate: HomeVCDelegate?
     
     var settingsData: [SettingsModel] = [
         SettingsModel(id: 1, title: "Your Favorite Music"),
@@ -72,6 +73,7 @@ extension SettingsVC: UITableViewDelegate, UITableViewDataSource {
             let favoriteVC = FavoriteVC.fetchInstance()
             favoriteVC.modalPresentationStyle = .overFullScreen
             favoriteVC.modalTransitionStyle = .crossDissolve
+            favoriteVC.delegate = self
             self.present(favoriteVC, animated: true)
         } else if data.id == 4 {
             let pickerView = AudioPickerView(container: AppDelegate.sharedContainer, presentingVC: self)
@@ -90,3 +92,14 @@ extension SettingsVC: AudioPickerViewDelegate {
     }
 }
 
+extension SettingsVC: FavoriteVCDelegate {
+    func didSelectMusic(_ musicData: [PlaylistMusicModel], currentMusicIndex: Int) {
+        self.songDelegate?.didSelectMusic(musicData, currentMusicIndex: currentMusicIndex)
+    }
+    
+    func didSelectMusic(_ musicData: [MusicModel], currentMusicIndex: Int) {
+        self.songDelegate?.didSelectMusic(musicData, currentMusicIndex: currentMusicIndex)
+    }
+    
+   
+}

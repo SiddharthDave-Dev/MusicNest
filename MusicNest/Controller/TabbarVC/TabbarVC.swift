@@ -66,8 +66,10 @@ class TabbarVC: UIViewController {
     var audioPlayer: AVAudioPlayer?
     var progressTimer: Timer?
     
+    var isPlaylist: Bool = false
     
     var musicData: [MusicModel] = []
+    var playlistMusicData: [PlaylistMusicModel] = []
     var currentMusicIndex: Int = 0
     
     
@@ -85,7 +87,7 @@ class TabbarVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         self.setUI()
         self.setUpSearchBar()
         self.setupTapToDismissKeyboard()
@@ -166,25 +168,29 @@ class TabbarVC: UIViewController {
     }
     
     @IBAction func didTappedexpandedViewMusicNextButton(_ sender: Any) {
-        guard !musicData.isEmpty else { return }
+//        guard !musicData.isEmpty else { return }
+//        
+//        if currentMusicIndex < musicData.count - 1 {
+//            currentMusicIndex += 1
+//            showMusicView(musicData[currentMusicIndex])
+//        }
+//        
+//        updateNavigationButtons()
         
-        if currentMusicIndex < musicData.count - 1 {
-            currentMusicIndex += 1
-            showMusicView(musicData[currentMusicIndex])
-        }
-        
-        updateNavigationButtons()
+        self.playNextTrack()
     }
     
     @IBAction func didTappedExpandedViewMusicPreviousButton(_ sender: Any) {
-        guard !musicData.isEmpty else { return }
+//        guard !musicData.isEmpty else { return }
+//        
+//        if currentMusicIndex > 0 {
+//            currentMusicIndex -= 1
+//            showMusicView(musicData[currentMusicIndex])
+//        }
+//        
+//        updateNavigationButtons()
         
-        if currentMusicIndex > 0 {
-            currentMusicIndex -= 1
-            showMusicView(musicData[currentMusicIndex])
-        }
-        
-        updateNavigationButtons()
+        self.playPreviousTrack()
     }
     
     
@@ -583,8 +589,13 @@ class TabbarVC: UIViewController {
             homeVC.delegate = self
         }
         
+        if let playlistVC = vc as? PlaylistVC {
+            playlistVC.songDelegate = self
+        }
+        
         if let settingsVC = vc as? SettingsVC {
             settingsVC.delegate = self
+            settingsVC.songDelegate = self
         }
         
         let newVC = vc
@@ -602,9 +613,63 @@ class TabbarVC: UIViewController {
         
         newVC.didMove(toParent: self)
         self.currentChildVC = newVC
+        
+        self.view.bringSubviewToFront(musicView)
     }
     
     private func showMusicView(_ musicData: MusicModel) {
+        if !isExpanded {
+            self.musicView.isHidden = false
+            //            self.expandedView.isHidden = true
+            //            self.musicViewTopConstraint.constant = 1000
+            self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
+            self.smallViewMusicTitle.text = musicData.title
+            
+            self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
+            self.expandedViewMusicTitle.text = musicData.title
+            
+            self.playAudio(from: musicData.audioData)
+            
+            UIView.animate(withDuration: 0.3, animations: {
+                self.musicViewTopConstraint.constant = 1000
+                self.view.layoutIfNeeded()
+                
+                self.expandedView.alpha = 0.0
+                self.expandedViewMusicImage.alpha = 0.0
+                self.expandedViewMusicTitle.alpha = 0.0
+                self.expandedViewMusicCancelButton.alpha = 0.0
+            }, completion: { _ in
+                self.isExpanded = false
+                
+                self.expandedView.isHidden = true
+                self.smallView.isHidden = false
+                self.smallView.alpha = 0.0
+                
+                self.expandedViewMusicImage.isHidden = true
+                self.expandedViewMusicTitle.isHidden = true
+                self.expandedViewMusicCancelButton.isHidden = true
+                
+                UIView.animate(withDuration: 0.2) {
+                    self.smallView.alpha = 1.0
+                }
+            })
+        } else {
+            self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
+            self.smallViewMusicTitle.text = musicData.title
+            
+            self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
+            self.expandedViewMusicTitle.text = musicData.title
+            
+            self.playAudio(from: musicData.audioData)
+        }
+        
+        self.setupAudioSession()
+        self.setupRemoteTransportControls()
+        self.updateNowPlayingInfo(music: musicData)
+        self.updateNowPlayingPlaybackState(isPlaying: true)
+    }
+    
+    private func showMusicView(_ musicData: PlaylistMusicModel) {
         if !isExpanded {
             self.musicView.isHidden = false
             //            self.expandedView.isHidden = true
@@ -731,8 +796,13 @@ class TabbarVC: UIViewController {
     }
     
     private func updateNavigationButtons() {
-        self.expandedViewMusicNextButton.isEnabled = currentMusicIndex < musicData.count - 1
-        self.expandedViewMusicPreviousButton.isEnabled = currentMusicIndex > 0
+        if self.isPlaylist {
+            self.expandedViewMusicNextButton.isEnabled = currentMusicIndex < playlistMusicData.count - 1
+            self.expandedViewMusicPreviousButton.isEnabled = currentMusicIndex > 0
+        } else {
+            self.expandedViewMusicNextButton.isEnabled = currentMusicIndex < musicData.count - 1
+            self.expandedViewMusicPreviousButton.isEnabled = currentMusicIndex > 0
+        }
     }
     
     
@@ -825,6 +895,27 @@ class TabbarVC: UIViewController {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
+    private func updateNowPlayingInfo(music: PlaylistMusicModel) {
+        guard let player = self.audioPlayer else { return }
+        
+        var nowPlayingInfo: [String: Any] = [
+            MPMediaItemPropertyTitle: music.title,
+            MPMediaItemPropertyArtist: music.artist,
+            MPMediaItemPropertyPlaybackDuration: player.duration,
+            MPNowPlayingInfoPropertyElapsedPlaybackTime: player.currentTime,
+            MPNowPlayingInfoPropertyPlaybackRate: player.isPlaying ? 1.0 : 0.0
+        ]
+        
+        let imageData = music.imageData
+        if let image = UIImage(data: imageData) {
+            let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+            nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+        }
+        
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
     private func updateNowPlayingPlaybackState(isPlaying: Bool) {
         guard let player = self.audioPlayer else { return }
         
@@ -834,24 +925,44 @@ class TabbarVC: UIViewController {
     
     
     private func playNextTrack() {
-        guard self.currentMusicIndex < self.musicData.count - 1 else { return }
-        self.currentMusicIndex += 1
-        let nextMusic = self.musicData[currentMusicIndex]
-        self.showMusicView(nextMusic)
-        self.updateNowPlayingInfo(music: nextMusic)
-        self.updateNowPlayingPlaybackState(isPlaying: true)
-        self.updateNavigationButtons()
+        if self.isPlaylist {
+            guard self.currentMusicIndex < self.playlistMusicData.count - 1 else { return }
+            self.currentMusicIndex += 1
+            let nextMusic = self.playlistMusicData[currentMusicIndex]
+            self.showMusicView(nextMusic)
+            self.updateNowPlayingInfo(music: nextMusic)
+            self.updateNowPlayingPlaybackState(isPlaying: true)
+            self.updateNavigationButtons()
+        } else {
+            guard self.currentMusicIndex < self.musicData.count - 1 else { return }
+            self.currentMusicIndex += 1
+            let nextMusic = self.musicData[currentMusicIndex]
+            self.showMusicView(nextMusic)
+            self.updateNowPlayingInfo(music: nextMusic)
+            self.updateNowPlayingPlaybackState(isPlaying: true)
+            self.updateNavigationButtons()
+        }
         
     }
     
     private func playPreviousTrack() {
-        guard self.currentMusicIndex > 0 else { return }
-        self.currentMusicIndex -= 1
-        let previousMusic = self.musicData[currentMusicIndex]
-        self.showMusicView(previousMusic)
-        self.updateNowPlayingInfo(music: previousMusic)
-        self.updateNowPlayingPlaybackState(isPlaying: true)
-        self.updateNavigationButtons()
+        if self.isPlaylist {
+            guard self.currentMusicIndex > 0 else { return }
+            self.currentMusicIndex -= 1
+            let previousMusic = self.playlistMusicData[currentMusicIndex]
+            self.showMusicView(previousMusic)
+            self.updateNowPlayingInfo(music: previousMusic)
+            self.updateNowPlayingPlaybackState(isPlaying: true)
+            self.updateNavigationButtons()
+        } else {
+            guard self.currentMusicIndex > 0 else { return }
+            self.currentMusicIndex -= 1
+            let previousMusic = self.musicData[currentMusicIndex]
+            self.showMusicView(previousMusic)
+            self.updateNowPlayingInfo(music: previousMusic)
+            self.updateNowPlayingPlaybackState(isPlaying: true)
+            self.updateNavigationButtons()
+        }
     }
     
     class func fetchInstance() -> Self {
@@ -906,12 +1017,24 @@ extension TabbarVC: SettingsVCDelegate {
 }
 
 extension TabbarVC: HomeVCDelegate {
-    func didSelectMusic(_ musicData: [MusicModel], currentMusicIndex: Int) {
+    func didSelectMusic(_ musicData: [PlaylistMusicModel], currentMusicIndex: Int) {
         self.showMusicView(musicData[currentMusicIndex])
-        
-        self.musicData = musicData
+        self.currentMusicIndex = 0
+        self.isPlaylist = true
+        self.musicData = []
+        self.playlistMusicData = musicData
         self.currentMusicIndex = currentMusicIndex
         
+        self.updateNavigationButtons()
+    }
+    
+    func didSelectMusic(_ musicData: [MusicModel], currentMusicIndex: Int) {
+        self.showMusicView(musicData[currentMusicIndex])
+        self.isPlaylist = false
+        self.currentMusicIndex = 0
+        self.musicData = musicData
+        self.currentMusicIndex = currentMusicIndex
+        self.playlistMusicData = []
         self.updateNavigationButtons()
     }
     

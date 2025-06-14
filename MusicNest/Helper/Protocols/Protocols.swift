@@ -22,5 +22,11 @@ protocol DocumentPickerDelegate: AnyObject {
 
 protocol HomeVCDelegate: AnyObject {
     func didSelectMusic(_ musicData: [MusicModel], currentMusicIndex: Int)
+    func didSelectMusic(_ musicData: [PlaylistMusicModel], currentMusicIndex: Int)
     func didSelectMusic(_ musicData: [MusicModel])
+}
+
+protocol FavoriteVCDelegate: AnyObject {
+    func didSelectMusic(_ musicData: [PlaylistMusicModel], currentMusicIndex: Int)
+    func didSelectMusic(_ musicData: [MusicModel], currentMusicIndex: Int)
 }

@@ -14,6 +14,7 @@ class PlaylistVC: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     
     var container: ModelContainer!
+    weak var songDelegate: HomeVCDelegate?
     
     private var playlistData: [PlaylistModel] = [] {
         didSet {
@@ -102,7 +103,21 @@ extension PlaylistVC: UITableViewDelegate, UITableViewDataSource {
         
         favoriteVC.playlistData = data.musicData
         
+        favoriteVC.delegate = self
+        
         self.present(favoriteVC, animated: true)
         
     }
+}
+
+extension PlaylistVC: FavoriteVCDelegate {
+    func didSelectMusic(_ musicData: [PlaylistMusicModel], currentMusicIndex: Int) {
+        self.songDelegate?.didSelectMusic(musicData, currentMusicIndex: currentMusicIndex)
+    }
+    
+    func didSelectMusic(_ musicData: [MusicModel], currentMusicIndex: Int) {
+        self.songDelegate?.didSelectMusic(musicData, currentMusicIndex: currentMusicIndex)
+    }
+    
+   
 }

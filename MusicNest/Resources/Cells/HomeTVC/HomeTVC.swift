@@ -38,4 +38,15 @@ class HomeTVC: UITableViewCell {
         self.dateLabel.text = formatter.string(from: musicData.date)
 
     }
+    
+    func configureUI(_ musicData: PlaylistMusicModel) {
+        self.musicArtistLabel.text = musicData.artist
+        self.musicTitleLabel.text = musicData.title
+        
+        self.musicImage.image = UIImage(data: musicData.imageData)
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM dd, yyyy"
+        self.dateLabel.text = formatter.string(from: musicData.date)
+    }
 }

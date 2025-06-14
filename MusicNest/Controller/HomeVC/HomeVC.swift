@@ -16,7 +16,6 @@ enum SortOption {
     case nameDesc
 }
 
-
 class HomeVC: UIViewController {
     
     @IBOutlet weak var sortButton: UIButton!
@@ -295,8 +294,4 @@ extension HomeVC: UITableViewDelegate, UITableViewDataSource {
             return UIMenu(title: "", children: [favoriteAction, playlistAction])
         }
     }
-
-
-
-
 }

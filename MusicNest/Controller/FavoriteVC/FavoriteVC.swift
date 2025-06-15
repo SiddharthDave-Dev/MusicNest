@@ -19,6 +19,8 @@ class FavoriteVC: UIViewController {
     
     weak var delegate: FavoriteVCDelegate?
     
+    var viewController: UIViewController!
+    
     var data: [MusicModel] = [] {
         didSet {
             delay(0) {
@@ -66,7 +68,11 @@ class FavoriteVC: UIViewController {
     }
     
     @IBAction func didTappedBackButton(_ sender: Any) {
-        self.dismiss(animated: true)
+//        self.dismiss(animated: true)
+        self.willMove(toParent: nil)
+        self.view.removeFromSuperview()
+        self.removeFromParent()
+
     }
     
     private func setUp() {

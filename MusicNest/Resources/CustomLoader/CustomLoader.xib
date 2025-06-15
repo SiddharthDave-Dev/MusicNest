@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23094" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23084"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="CustomLoader" customModule="BusinessAI" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="SEk-BC-PHy">
+                    <rect key="frame" x="156.66666666666666" y="386" width="80" height="80"/>
+                    <subviews>
+                        <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="rog-uQ-Ugt">
+                            <rect key="frame" x="21.333333333333343" y="21.666666666666686" width="37" height="37"/>
+                            <color key="color" name="Color"/>
+                        </activityIndicatorView>
+                    </subviews>
+                    <color key="backgroundColor" name="reverseColor"/>
+                    <constraints>
+                        <constraint firstItem="rog-uQ-Ugt" firstAttribute="centerY" secondItem="SEk-BC-PHy" secondAttribute="centerY" id="195-Mo-sn1"/>
+                        <constraint firstAttribute="height" constant="80" id="JCa-4d-Gu8"/>
+                        <constraint firstItem="rog-uQ-Ugt" firstAttribute="centerX" secondItem="SEk-BC-PHy" secondAttribute="centerX" id="OAd-QI-iBL"/>
+                        <constraint firstAttribute="width" constant="80" id="P1L-Zh-6TR"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
+            <color key="backgroundColor" white="0.0" alpha="0.40000000000000002" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <constraints>
+                <constraint firstItem="SEk-BC-PHy" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="ByK-3F-8nW"/>
+                <constraint firstItem="SEk-BC-PHy" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="Xg2-tE-Pn5"/>
+            </constraints>
+            <connections>
+                <outlet property="loader" destination="rog-uQ-Ugt" id="RJ9-YO-7Jf"/>
+                <outlet property="loaderView" destination="SEk-BC-PHy" id="4RK-aA-e8q"/>
+            </connections>
+            <point key="canvasLocation" x="132" y="-11"/>
+        </view>
+    </objects>
+    <resources>
+        <namedColor name="Color">
+            <color red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="reverseColor">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>

@@ -17,6 +17,7 @@ enum TabType {
 
 class TabbarVC: UIViewController {
     
+    @IBOutlet weak var tabbarView: UIView!
     @IBOutlet weak var expandedViewMusicNextButton: UIButton!
     @IBOutlet weak var expandedViewMusicPreviousButton: UIButton!
     @IBOutlet weak var expandedMusicSlider: UISlider!
@@ -88,6 +89,8 @@ class TabbarVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        self.view.bringSubviewToFront(self.musicView)
+        
         self.setUI()
         self.setUpSearchBar()
         self.setupTapToDismissKeyboard()
@@ -155,7 +158,7 @@ class TabbarVC: UIViewController {
             return
         }
         
-        let music = MusicModel(title: "Demo", imageData: imageData, audioData: Data(), artist: "artist", isFavourite: false)
+        let music = MusicModel(title: "Demo", imageData: imageData, artist: "artist", date: Date(), isFavourite: false, fileName: "")
         modelContext.insert(music)
         
         do {
@@ -590,10 +593,15 @@ class TabbarVC: UIViewController {
         }
         
         if let playlistVC = vc as? PlaylistVC {
+            playlistVC.musicView = self.musicView
+            playlistVC.viewController = self
+            playlistVC.tabbarView = self.tabbarView
             playlistVC.songDelegate = self
         }
         
         if let settingsVC = vc as? SettingsVC {
+            settingsVC.musicView = self.musicView
+            settingsVC.viewController = self
             settingsVC.delegate = self
             settingsVC.songDelegate = self
         }
@@ -617,18 +625,70 @@ class TabbarVC: UIViewController {
         self.view.bringSubviewToFront(musicView)
     }
     
+//    private func showMusicView(_ musicData: MusicModel) {
+//        if !isExpanded {
+//            self.musicView.isHidden = false
+//            //            self.expandedView.isHidden = true
+//            //            self.musicViewTopConstraint.constant = 1000
+//            self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
+//            self.smallViewMusicTitle.text = musicData.title
+//            
+//            self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
+//            self.expandedViewMusicTitle.text = musicData.title
+//            
+//            self.playAudio(from: musicData.audioData)
+//            
+//            UIView.animate(withDuration: 0.3, animations: {
+//                self.musicViewTopConstraint.constant = 1000
+//                self.view.layoutIfNeeded()
+//                
+//                self.expandedView.alpha = 0.0
+//                self.expandedViewMusicImage.alpha = 0.0
+//                self.expandedViewMusicTitle.alpha = 0.0
+//                self.expandedViewMusicCancelButton.alpha = 0.0
+//            }, completion: { _ in
+//                self.isExpanded = false
+//                
+//                self.expandedView.isHidden = true
+//                self.smallView.isHidden = false
+//                self.smallView.alpha = 0.0
+//                
+//                self.expandedViewMusicImage.isHidden = true
+//                self.expandedViewMusicTitle.isHidden = true
+//                self.expandedViewMusicCancelButton.isHidden = true
+//                
+//                UIView.animate(withDuration: 0.2) {
+//                    self.smallView.alpha = 1.0
+//                }
+//            })
+//        } else {
+//            self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
+//            self.smallViewMusicTitle.text = musicData.title
+//            
+//            self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
+//            self.expandedViewMusicTitle.text = musicData.title
+//            
+//            self.playAudio(from: musicData.audioData)
+//        }
+//        
+//        self.setupAudioSession()
+//        self.setupRemoteTransportControls()
+//        self.updateNowPlayingInfo(music: musicData)
+//        self.updateNowPlayingPlaybackState(isPlaying: true)
+//    }
+    
     private func showMusicView(_ musicData: MusicModel) {
         if !isExpanded {
             self.musicView.isHidden = false
-            //            self.expandedView.isHidden = true
-            //            self.musicViewTopConstraint.constant = 1000
+            
             self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
             self.smallViewMusicTitle.text = musicData.title
             
             self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
             self.expandedViewMusicTitle.text = musicData.title
             
-            self.playAudio(from: musicData.audioData)
+            let audioURL = getAudioURL(for: musicData) // ✅ new
+            self.playAudio(from: audioURL) // ✅ updated to use URL
             
             UIView.animate(withDuration: 0.3, animations: {
                 self.musicViewTopConstraint.constant = 1000
@@ -660,7 +720,8 @@ class TabbarVC: UIViewController {
             self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
             self.expandedViewMusicTitle.text = musicData.title
             
-            self.playAudio(from: musicData.audioData)
+            let audioURL = getAudioURL(for: musicData) // ✅ new
+            self.playAudio(from: audioURL) // ✅ updated to use URL
         }
         
         self.setupAudioSession()
@@ -672,15 +733,15 @@ class TabbarVC: UIViewController {
     private func showMusicView(_ musicData: PlaylistMusicModel) {
         if !isExpanded {
             self.musicView.isHidden = false
-            //            self.expandedView.isHidden = true
-            //            self.musicViewTopConstraint.constant = 1000
+            
             self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
             self.smallViewMusicTitle.text = musicData.title
             
             self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
             self.expandedViewMusicTitle.text = musicData.title
             
-            self.playAudio(from: musicData.audioData)
+            let audioURL = getAudioURL(for: musicData) // ✅ new
+            self.playAudio(from: audioURL) // ✅ updated to use URL
             
             UIView.animate(withDuration: 0.3, animations: {
                 self.musicViewTopConstraint.constant = 1000
@@ -712,15 +773,78 @@ class TabbarVC: UIViewController {
             self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
             self.expandedViewMusicTitle.text = musicData.title
             
-            self.playAudio(from: musicData.audioData)
+            let audioURL = getAudioURL(for: musicData) // ✅ new
+            self.playAudio(from: audioURL) // ✅ updated to use URL
         }
         
         self.setupAudioSession()
         self.setupRemoteTransportControls()
         self.updateNowPlayingInfo(music: musicData)
         self.updateNowPlayingPlaybackState(isPlaying: true)
-        
     }
+
+    func getAudioURL(for music: MusicModel) -> URL {
+        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent(music.fileName)
+    }
+    
+    func getAudioURL(for music: PlaylistMusicModel) -> URL {
+        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent(music.fileName)
+    }
+
+//    private func showMusicView(_ musicData: PlaylistMusicModel) {
+//        if !isExpanded {
+//            self.musicView.isHidden = false
+//            //            self.expandedView.isHidden = true
+//            //            self.musicViewTopConstraint.constant = 1000
+//            self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
+//            self.smallViewMusicTitle.text = musicData.title
+//            
+//            self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
+//            self.expandedViewMusicTitle.text = musicData.title
+//            
+//            self.playAudio(from: musicData.audioData)
+//            
+//            UIView.animate(withDuration: 0.3, animations: {
+//                self.musicViewTopConstraint.constant = 1000
+//                self.view.layoutIfNeeded()
+//                
+//                self.expandedView.alpha = 0.0
+//                self.expandedViewMusicImage.alpha = 0.0
+//                self.expandedViewMusicTitle.alpha = 0.0
+//                self.expandedViewMusicCancelButton.alpha = 0.0
+//            }, completion: { _ in
+//                self.isExpanded = false
+//                
+//                self.expandedView.isHidden = true
+//                self.smallView.isHidden = false
+//                self.smallView.alpha = 0.0
+//                
+//                self.expandedViewMusicImage.isHidden = true
+//                self.expandedViewMusicTitle.isHidden = true
+//                self.expandedViewMusicCancelButton.isHidden = true
+//                
+//                UIView.animate(withDuration: 0.2) {
+//                    self.smallView.alpha = 1.0
+//                }
+//            })
+//        } else {
+//            self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
+//            self.smallViewMusicTitle.text = musicData.title
+//            
+//            self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
+//            self.expandedViewMusicTitle.text = musicData.title
+//            
+//            self.playAudio(from: musicData.audioData)
+//        }
+//        
+//        self.setupAudioSession()
+//        self.setupRemoteTransportControls()
+//        self.updateNowPlayingInfo(music: musicData)
+//        self.updateNowPlayingPlaybackState(isPlaying: true)
+//        
+//    }
     
     private func playAudio(from data: Data) {
         // Stop any existing audio
@@ -751,6 +875,27 @@ class TabbarVC: UIViewController {
         }
     }
     
+    private func playAudio(from url: URL) {
+        // Stop any existing audio
+        self.audioPlayer?.stop()
+
+        do {
+            self.audioPlayer = try AVAudioPlayer(contentsOf: url)
+            self.audioPlayer?.prepareToPlay()
+            self.audioPlayer?.play()
+            self.audioPlayer?.delegate = self
+
+            self.startProgressTimer()
+
+            self.smallViewMusicPlayButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
+            self.expandedViewMusicPlayButton.setImage(UIImage(named: "pause"), for: .normal)
+
+            print("🎵 Audio playback started from file: \(url.lastPathComponent)")
+        } catch {
+            print("❌ Failed to play audio from file: \(error.localizedDescription)")
+        }
+    }
+
     
     private func startProgressTimer() {
         self.progressTimer?.invalidate() // clear existing timer

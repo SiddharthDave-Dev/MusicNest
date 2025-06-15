@@ -27,21 +27,19 @@ class PlaylistModel: ObservableObject {
 
 @Model
 class PlaylistMusicModel: ObservableObject {
-    @Attribute(.unique) var id: UUID
     var title: String
     var imageData: Data
-    var audioData: Data  // ✅ New
     var artist: String
     var date: Date
     var isFavourite: Bool
-
-    init(title: String, imageData: Data, audioData: Data, artist: String, date: Date = Date(), isFavourite: Bool) {
-        self.id = UUID()
+    var fileName: String // ← Store filename instead of audioData
+    
+    init(title: String, imageData: Data, artist: String, date: Date, isFavourite: Bool, fileName: String) {
         self.title = title
         self.imageData = imageData
-        self.audioData = audioData
         self.artist = artist
         self.date = date
         self.isFavourite = isFavourite
+        self.fileName = fileName
     }
 }

@@ -10,6 +10,7 @@ import UIKit
 
 protocol AudioPickerViewDelegate: AnyObject {
     func didFinishAddingMusic()
+    func didShowLoader()
 }
 
 protocol SettingsVCDelegate: AnyObject {

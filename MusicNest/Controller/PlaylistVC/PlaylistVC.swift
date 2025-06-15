@@ -24,6 +24,9 @@ class PlaylistVC: UIViewController {
         }
     }
 
+    var viewController: UIViewController!
+    var musicView: UIView!
+    var tabbarView: UIView!
     
     lazy var emptyDataView: EmptyDataView = {
         let view = EmptyDataView()
@@ -93,21 +96,38 @@ extension PlaylistVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let data = self.playlistData[indexPath.row]
-        
-        
+
         let favoriteVC = FavoriteVC.fetchInstance()
         favoriteVC.modalPresentationStyle = .overFullScreen
         favoriteVC.modalTransitionStyle = .crossDissolve
-        
+
         favoriteVC.isPlaylist = true
-        
         favoriteVC.playlistData = data.musicData
-        
         favoriteVC.delegate = self
-        
-        self.present(favoriteVC, animated: true)
-        
+
+        // Ensure viewController and musicView are available
+        guard let parentVC = self.viewController,
+              let musicView = self.musicView else { return }
+
+        // Add as child to the passed-in viewController
+        parentVC.addChild(favoriteVC)
+
+        // Set full frame
+        favoriteVC.view.frame = parentVC.view.bounds
+        favoriteVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        favoriteVC.view.alpha = 0.0
+
+        // Insert below the musicView
+        parentVC.view.insertSubview(favoriteVC.view, belowSubview: musicView)
+
+        // Animate appearance
+        UIView.animate(withDuration: 0.3, animations: {
+            favoriteVC.view.alpha = 1.0
+        }) { _ in
+            favoriteVC.didMove(toParent: parentVC)
+        }
     }
+
 }
 
 extension PlaylistVC: FavoriteVCDelegate {

@@ -15,6 +15,11 @@ class SettingsVC: UIViewController {
     weak var delegate: SettingsVCDelegate?
     weak var songDelegate: HomeVCDelegate?
     
+    private var customLoaderView: CustomLoader?
+    
+    var viewController: UIViewController!
+    var musicView: UIView!
+    
     var settingsData: [SettingsModel] = [
         SettingsModel(id: 1, title: "Your Favorite Music"),
         SettingsModel(id: 2, title: "Privacy Policy"),
@@ -40,6 +45,56 @@ class SettingsVC: UIViewController {
         
     }
 
+    private func hideLoader() {
+        self.customLoaderView?.hideLoader()
+        self.customLoaderView?.removeFromSuperview()
+    }
+    
+    private func showLoader() {
+        self.presentIAP()
+    }
+
+    private func presentIAP() {
+        customLoaderView?.removeFromSuperview()
+           
+        if let memberInfo = Bundle.main.loadNibNamed("CustomLoader", owner: nil)?.first as? CustomLoader {
+            customLoaderView = memberInfo
+            memberInfo.translatesAutoresizingMaskIntoConstraints = false
+            customLoaderView?.isUserInteractionEnabled = true
+           
+            memberInfo.alpha = 0
+            
+            // Get the key window
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) ?? windowScene.windows.first else {
+                return
+            }
+            
+            // Add to window instead of view controller's view
+            self.view.addSubview(memberInfo)
+            
+            // Use safe area of window
+            NSLayoutConstraint.activate([
+                memberInfo.topAnchor.constraint(equalTo: keyWindow.topAnchor, constant: 0),
+                memberInfo.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor, constant: 0),
+                memberInfo.leadingAnchor.constraint(equalTo: keyWindow.leadingAnchor, constant: 0),
+                memberInfo.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: 0)
+            ])
+            
+            // Animate appearance
+            UIView.animate(withDuration: 0.5,
+                          delay: 0,
+                          usingSpringWithDamping: 0.8,
+                          initialSpringVelocity: 0.5,
+                          options: .curveEaseOut) {
+                memberInfo.alpha = 1
+                memberInfo.transform = .identity
+            }
+            
+            memberInfo.showLoader()
+        }
+    }
+    
     class func fetchInstance() -> Self {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         return storyboard.instantiateViewController(withIdentifier: "\(Self.self)") as! Self
@@ -70,11 +125,39 @@ extension SettingsVC: UITableViewDelegate, UITableViewDataSource {
         let data = self.settingsData[indexPath.row]
         
         if data.id == 1 {
+//            let favoriteVC = FavoriteVC.fetchInstance()
+//            favoriteVC.modalPresentationStyle = .overFullScreen
+//            favoriteVC.modalTransitionStyle = .crossDissolve
+//            favoriteVC.delegate = self
+//            self.present(favoriteVC, animated: true)
+            
             let favoriteVC = FavoriteVC.fetchInstance()
             favoriteVC.modalPresentationStyle = .overFullScreen
             favoriteVC.modalTransitionStyle = .crossDissolve
+
             favoriteVC.delegate = self
-            self.present(favoriteVC, animated: true)
+
+            // Ensure viewController and musicView are available
+            guard let parentVC = self.viewController,
+                  let musicView = self.musicView else { return }
+
+            // Add as child to the passed-in viewController
+            parentVC.addChild(favoriteVC)
+
+            // Set full frame
+            favoriteVC.view.frame = parentVC.view.bounds
+            favoriteVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            favoriteVC.view.alpha = 0.0
+
+            // Insert below the musicView
+            parentVC.view.insertSubview(favoriteVC.view, belowSubview: musicView)
+
+            // Animate appearance
+            UIView.animate(withDuration: 0.3, animations: {
+                favoriteVC.view.alpha = 1.0
+            }) { _ in
+                favoriteVC.didMove(toParent: parentVC)
+            }
         } else if data.id == 4 {
             let pickerView = AudioPickerView(container: AppDelegate.sharedContainer, presentingVC: self)
             pickerView.delegate = self
@@ -88,7 +171,12 @@ extension SettingsVC: UITableViewDelegate, UITableViewDataSource {
 
 extension SettingsVC: AudioPickerViewDelegate {
     func didFinishAddingMusic() {
+        self.hideLoader()
         delegate?.didSelectHomeTab()
+    }
+    
+    func didShowLoader() {
+        self.showLoader()
     }
 }
 

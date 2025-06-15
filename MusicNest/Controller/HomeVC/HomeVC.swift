@@ -80,21 +80,38 @@ class HomeVC: UIViewController {
         self.tableView.dataSource = self
     }
     
+//    func fetchMusic() -> [MusicModel] {
+//        let context = container.mainContext
+//        let fetchDescriptor = FetchDescriptor<MusicModel>(
+//            sortBy: [SortDescriptor(\.date, order: .forward)]
+//        )
+//        
+//        do {
+//            let ideas = try context.fetch(fetchDescriptor)
+//            print("✅ Fetched \(ideas.count) ideas")
+//            return ideas
+//        } catch {
+//            print("❌ Failed to fetch ideas: \(error)")
+//            return []
+//        }
+//    }
+    
     func fetchMusic() -> [MusicModel] {
         let context = container.mainContext
         let fetchDescriptor = FetchDescriptor<MusicModel>(
-            sortBy: [SortDescriptor(\.date, order: .reverse)]
+            sortBy: [SortDescriptor(\.date, order: .forward)]
         )
         
         do {
-            let ideas = try context.fetch(fetchDescriptor)
-            print("✅ Fetched \(ideas.count) ideas")
-            return ideas
+            let songs = try context.fetch(fetchDescriptor)
+            print("✅ Fetched \(songs.count) songs")
+            return songs
         } catch {
-            print("❌ Failed to fetch ideas: \(error)")
+            print("❌ Failed to fetch songs: \(error)")
             return []
         }
     }
+
 
     
     private func setupSortMenu() {

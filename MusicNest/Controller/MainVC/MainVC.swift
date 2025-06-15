@@ -9,6 +9,10 @@ import UIKit
 import SwiftData
 
 class MainVC: UIViewController, AudioPickerViewDelegate {
+    func didShowLoader() {
+        
+    }
+    
     
     @IBOutlet weak var tableView: UITableView!
     

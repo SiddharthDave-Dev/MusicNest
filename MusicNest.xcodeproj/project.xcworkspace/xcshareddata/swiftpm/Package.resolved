@@ -1,5 +1,5 @@
 {
-  "originHash" : "c7bd226e7ed695e3ebb321521c2689a99e3e28c94036fcecd767ae63e3c52b3c",
+  "originHash" : "82f3fab8d7f942fc8090ba9b8713443a1c245761bc0ebd5d01609a1db3e2567f",
   "pins" : [
     {
       "identity" : "reusable",
@@ -7,7 +7,16 @@
       "location" : "https://github.com/SiddharthDave-Dev/Reusable.git",
       "state" : {
         "branch" : "main",
-        "revision" : "8ded9b12283e91c12ae6669462a88aeae31c0dad"
+        "revision" : "0048e7afdeb04226142ad52a3f52e99e844f0137"
+      }
+    },
+    {
+      "identity" : "youtubekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/alexeichhorn/YouTubeKit.git",
+      "state" : {
+        "revision" : "fae7914e970a116405d89ae9cbbcfb2915824100",
+        "version" : "0.2.8"
       }
     }
   ],

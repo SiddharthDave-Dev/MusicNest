@@ -12,7 +12,7 @@ import SwiftData
 import MediaPlayer
 
 enum TabType {
-    case home, playlist, settings
+    case home, ripYT, playlist, settings
 }
 
 class TabbarVC: UIViewController {
@@ -35,6 +35,10 @@ class TabbarVC: UIViewController {
     @IBOutlet weak var musicViewTopConstraint: NSLayoutConstraint!
     @IBOutlet weak var musicView: UIView!
     
+    @IBOutlet weak var addButton: UIButton!
+    @IBOutlet weak var ripYTButton: UIButton!
+    @IBOutlet weak var ripYTLabel: UILabel!
+    @IBOutlet weak var ripYTImage: UIImageView!
     @IBOutlet weak var stackViewTrailingConstraint: NSLayoutConstraint!
     @IBOutlet weak var cancelButton: UIButton!
     @IBOutlet weak var searchLabel: UILabel!
@@ -147,26 +151,32 @@ class TabbarVC: UIViewController {
         }
     }
     
-    @IBAction func addDemoDataButton(_ sender: Any) {
-        var container: ModelContainer!
-        container = AppDelegate.sharedContainer
-        let modelContext = container.mainContext
-        let artwork = UIImage(named: "DemoMusicImage")!
-        
-        guard let imageData = artwork.jpegData(compressionQuality: 0.8) else {
-            print("Failed to convert image to Data.")
-            return
-        }
-        
-        let music = MusicModel(title: "Demo", imageData: imageData, artist: "artist", date: Date(), isFavourite: false, fileName: "")
-        modelContext.insert(music)
-        
-        do {
-            try modelContext.save()
-            print("✅ Saved Demoe audio to SwiftData")
-            //            delegate?.didFinishAddingMusic()
-        } catch {
-            print("❌ Failed to save to SwiftData: \(error)")
+    @IBAction func didTappedAddButton(_ sender: Any) {
+        if self.selectedTab == .home {
+            
+            
+            var container: ModelContainer!
+            container = AppDelegate.sharedContainer
+            let modelContext = container.mainContext
+            let artwork = UIImage(named: "DemoMusicImage")!
+            
+            guard let imageData = artwork.jpegData(compressionQuality: 0.8) else {
+                print("Failed to convert image to Data.")
+                return
+            }
+            
+            let music = MusicModel(title: "Demo", imageData: imageData, artist: "artist", date: Date(), isFavourite: false, fileName: "")
+            modelContext.insert(music)
+            
+            do {
+                try modelContext.save()
+                print("✅ Saved Demoe audio to SwiftData")
+                //            delegate?.didFinishAddingMusic()
+            } catch {
+                print("❌ Failed to save to SwiftData: \(error)")
+            }
+        } else if self.selectedTab == .playlist {
+            
         }
     }
     
@@ -326,6 +336,10 @@ class TabbarVC: UIViewController {
         // Add any navigation logic here
     }
     
+    @IBAction func didTappedRipYTButton(_ sender: Any) {
+        self.updateTabSelection(to: .ripYT)
+    }
+    
     @IBAction func didTappedSettingsButton(_ sender: Any) {
         self.updateTabSelection(to: .settings)
         // Add any navigation logic here
@@ -482,21 +496,31 @@ class TabbarVC: UIViewController {
         self.homeImage.image = UIImage(named: "home")
         self.playlistImage.image = UIImage(named: "playlist")
         self.settingsImage.image = UIImage(named: "settings")
+        self.ripYTImage.image = UIImage(named: "ripYT")
         
         self.homeLabel.textColor = .white
         self.playlistLabel.textColor = .white
         self.settingsLabel.textColor = .white
+        self.ripYTLabel.textColor = .white
+        self.titleLabel.textColor = .white
         
         self.homeImage.tintColor = .white
         self.playlistImage.tintColor = .white
         self.settingsImage.tintColor = .white
-        self.titleLabel.textColor = .white
+        self.ripYTImage.tintColor = .white
         
         switch tab {
         case .home:
             self.titleLabel.text = "Your Music Nest"
             self.showStep(vc: HomeVC.fetchInstance())
             self.clearButtonTapped()
+            
+            UIView.animate(withDuration: 0.3, animations: {
+                self.addButton.alpha = 0
+            }) { _ in
+                self.addButton.isHidden = true
+            }
+
             
             // Animate showing tabbarRightView
             if self.tabbarRightView.isHidden {
@@ -512,20 +536,48 @@ class TabbarVC: UIViewController {
             self.homeImage.image = UIImage(named: "selectedHome")
             self.homeLabel.textColor = .systemPink
             self.homeImage.tintColor = .systemPink
+        case .ripYT:
+            self.titleLabel.text = "Rip Audio"
+            self.showStep(vc: ExtractAudioVC.fetchInstance())
+            self.clearButtonTapped()
+            // Animate hiding tabbarRightView
+            UIView.animate(withDuration: 0.3, animations: {
+                self.tabbarRightView.alpha = 0
+                self.addButton.alpha = 0
+                self.view.layoutIfNeeded()
+            }) { _ in
+                self.addButton.isHidden = true
+                self.tabbarRightView.isHidden = true
+                self.stackViewTrailingConstraint.constant = 0
+                UIView.animate(withDuration: 0.3) {
+                    self.view.layoutIfNeeded()
+                }
+            }
+            
+            self.ripYTImage.image = UIImage(named: "selectedRipYT")
+            self.ripYTLabel.textColor = .systemPink
+            self.ripYTImage.tintColor = .systemPink
             
         case .playlist:
             self.titleLabel.text = "Playlists"
             self.showStep(vc: PlaylistVC.fetchInstance())
             self.clearButtonTapped()
             
+            self.addButton.alpha = 0
+            self.addButton.isHidden = false
+            UIView.animate(withDuration: 0.3) {
+                self.addButton.alpha = 1
+            }
+            
             // Animate showing tabbarRightView
             if self.tabbarRightView.isHidden {
+                
                 self.tabbarRightView.isHidden = false
                 self.tabbarRightView.alpha = 0
                 self.stackViewTrailingConstraint.constant = 20
                 UIView.animate(withDuration: 0.3) {
                     self.tabbarRightView.alpha = 1
-                    self.view.layoutIfNeeded()
+                    self.view.layoutIfNeeded() // Ensures stack view updates are animated
                 }
             }
             
@@ -542,6 +594,7 @@ class TabbarVC: UIViewController {
                 self.tabbarRightView.alpha = 0
                 self.view.layoutIfNeeded()
             }) { _ in
+                self.addButton.isHidden = true
                 self.tabbarRightView.isHidden = true
                 self.stackViewTrailingConstraint.constant = 0
                 UIView.animate(withDuration: 0.3) {

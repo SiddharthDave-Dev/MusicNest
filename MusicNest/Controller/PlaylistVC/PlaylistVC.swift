@@ -104,7 +104,8 @@ extension PlaylistVC: UITableViewDelegate, UITableViewDataSource {
         favoriteVC.isPlaylist = true
         favoriteVC.playlistData = data.musicData
         favoriteVC.delegate = self
-
+        favoriteVC.playlistName = data.playlistName
+        
         // Ensure viewController and musicView are available
         guard let parentVC = self.viewController,
               let musicView = self.musicView else { return }

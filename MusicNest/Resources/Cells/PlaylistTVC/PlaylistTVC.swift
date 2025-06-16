@@ -35,7 +35,10 @@ class PlaylistTVC: UITableViewCell {
     }
     
     func configureUI(_ playlist: PlaylistModel) {
-        self.platlistTitleLabel.text = playlist.playlistName
+        self.plusImage.isHidden = false
+        self.platlistTitleLabel.text = playlist.playlistName.capitalized
+        self.plusImage.image = UIImage(systemName: "chevron.right")
+        self.plusImage.tintColor = .white.withAlphaComponent(0.5)
     }
     
     func configureUI(_ string: String) {
@@ -46,12 +49,15 @@ class PlaylistTVC: UITableViewCell {
         self.outerpointView.isHidden = true
         self.innerPointView.isHidden = true
         self.plusImage.isHidden = false
+//        self.plusImage.image = UIImage(systemName: "plus")?.withTintColor(.white)
     }
     
     func hidePlusImage() {
         self.outerpointView.isHidden = true
         self.innerPointView.isHidden = true
         self.plusImage.isHidden = true
+        
+//        self.plusImage.image = UIImage(systemName: "chevron.right")?.withTintColor(.white.withAlphaComponent(0.5))
     }
     
     func showPonitView() {

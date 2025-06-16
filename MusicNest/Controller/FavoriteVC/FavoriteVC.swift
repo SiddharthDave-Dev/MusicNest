@@ -54,6 +54,7 @@ class FavoriteVC: UIViewController {
     }
     
     var isPlaylist: Bool = false
+    var playlistName: String?
     
     lazy var emptyDataView: EmptyDataView = {
         let view = EmptyDataView()
@@ -78,7 +79,7 @@ class FavoriteVC: UIViewController {
     private func setUp() {
         self.container = AppDelegate.sharedContainer
         
-        self.titleLabel.text = self.isPlaylist ? "Playlist" : "Favorite Songs"
+        self.titleLabel.text = self.isPlaylist ? (playlistName?.capitalized ?? "") : "Favorite Songs"
         
         if !self.isPlaylist {
             self.data = self.fetchFavoriteMusic()

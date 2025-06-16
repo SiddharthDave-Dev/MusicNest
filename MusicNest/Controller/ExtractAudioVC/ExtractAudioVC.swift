@@ -11,7 +11,12 @@ import YouTubeKit
 import AVFoundation
 
 class ExtractAudioVC: UIViewController {
-
+    
+    
+    deinit {
+        progressTimer?.invalidate()
+    }
+    
     @IBOutlet weak var musicTimeLabel: UILabel!
     @IBOutlet weak var musicPlayButton: UIButton!
     @IBOutlet weak var musicSlider: UISlider!
@@ -34,18 +39,34 @@ class ExtractAudioVC: UIViewController {
     @IBOutlet weak var urlPasteTF: UITextView!
     
     var progressTimer: Timer?
-    var player: AVPlayer?
+    var audioPlayer: AVAudioPlayer?
+    
+    var downloadSession: URLSession?
+    var downloadTask: URLSessionDownloadTask?
+    var resumeData: Data?
+    
+    private var customLoaderView: CustomLoader?
+    
+    var videoTitle: String = "Unknown"
+    var author: String = "Unknown"
+    var thumbnailURLString: String = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        self.setUpUI()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
         self.setUpUI()
     }
     
     @IBAction func didTappedMusicPlayButton(_ sender: UIButton) {
-        guard let player = player else { return }
+        guard let player = audioPlayer else { return }
         
-        if player.timeControlStatus == .playing {
+        if player.isPlaying {
             player.pause()
             musicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
         } else {
@@ -53,17 +74,14 @@ class ExtractAudioVC: UIViewController {
             musicPlayButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
         }
     }
-
+    
     
     @IBAction func didTappedMusicSlider(_ sender: UISlider) {
-        guard let player = self.player,
-                  let duration = player.currentItem?.duration,
-                  duration.isNumeric else { return }
-
-            let totalSeconds = duration.seconds
-            let seekTime = CMTime(seconds: Double(sender.value) * totalSeconds, preferredTimescale: 600)
-            player.seek(to: seekTime)
+        guard let player = self.audioPlayer else { return }
+        let clampedValue = min(Double(sender.value), player.duration - 0.2)
+        player.currentTime = clampedValue
     }
+    
     
     @IBAction func didTappedDownlaodAudioButton(_ sender: Any) {
     }
@@ -78,7 +96,7 @@ class ExtractAudioVC: UIViewController {
         }
         
         Task {
-          await self.fetchYouTubeStream(url: urlText)
+            await self.fetchYouTubeStream(url: urlText)
         }
     }
     
@@ -113,12 +131,12 @@ class ExtractAudioVC: UIViewController {
             print("❌ Invalid YouTube URL")
             return
         }
-
+        
+        //        self.showLoader()
+        
         // Step 1: Fetch metadata first
-        var videoTitle: String = "Unknown"
-        var author: String = "Unknown"
-        var thumbnailURLString: String = ""
-
+       
+        
         let videoURL = youtubeURL.absoluteString
         let oembedURLString = "https://www.youtube.com/oembed?url=\(videoURL)&format=json"
         
@@ -129,7 +147,7 @@ class ExtractAudioVC: UIViewController {
                     videoTitle = json["title"] as? String ?? "Unknown"
                     author = json["author_name"] as? String ?? "Unknown"
                     thumbnailURLString = json["thumbnail_url"] as? String ?? ""
-
+                    
                     print("🎬 Title: \(videoTitle)")
                     print("✍️ Author: \(author)")
                     print("🖼️ Thumbnail URL: \(thumbnailURLString)")
@@ -138,51 +156,106 @@ class ExtractAudioVC: UIViewController {
                 print("❌ Failed to fetch metadata: \(error)")
             }
         }
-
+        
         // Step 2: Fetch audio stream
         do {
             let video = try await YouTube(url: youtubeURL)
             let streams = try await video.streams
             let audioOnlyStreams = streams.filterAudioOnly()
             print("🎧 Audio-only streams: \(audioOnlyStreams)")
-
+            
             if let stream = audioOnlyStreams.first {
                 // Step 3: Setup UI
                 DispatchQueue.main.async { [weak self] in
-//                    self?.musicTimeLabel.text = videoTitle
-                    self?.musicSlider.value = 0
-
-                    if let imageURL = URL(string: thumbnailURLString) {
-                        URLSession.shared.dataTask(with: imageURL) { [weak self] data, response, error in
-                            guard let data = data, error == nil,
-                                  let image = UIImage(data: data) else {
-                                print("❌ Failed to load thumbnail image")
-                                return
-                            }
-
-                            DispatchQueue.main.async {
-                                self?.musicImage.image = image
-                            }
-                        }.resume()
-                    }
-
+                    //                    self?.musicTimeLabel.text = videoTitle
+//                    self?.musicSlider.value = 0
+                    
+//                    if let imageURL = URL(string: thumbnailURLString) {
+//                        URLSession.shared.dataTask(with: imageURL) { [weak self] data, response, error in
+//                            guard let data = data, error == nil,
+//                                  let image = UIImage(data: data) else {
+//                                print("❌ Failed to load thumbnail image")
+//                                return
+//                            }
+//                            
+//                            DispatchQueue.main.async {
+//                                self?.musicImage.image = image
+//                            }
+//                        }.resume()
+//                    }
+                    
                     // Step 4: Play audio
-//                    let playerItem = AVPlayerItem(url: stream.url)
-//                                    self?.player = AVPlayer(playerItem: playerItem)
-//                                    self?.player?.play()
-//                                    self?.startAVPlayerProgressTimer()
+                    //                    let playerItem = AVPlayerItem(url: stream.url)
+                    //                                    self?.player = AVPlayer(playerItem: playerItem)
+                    //                                    self?.player?.play()
+                    //
                     
-                    self?.playStreamAudio(from: stream.url)
-
-
+                    //                    self?.playStreamAudio(from: stream.url)
+                    if let duration = self?.extractDuration(from: stream.url) {
+                        print("🕒 Duration: \(duration) seconds")
+                        
+                        if duration > 20 * 60 {
+                            DispatchQueue.main.async {
+                                let alert = UIAlertController(
+                                    title: "Long Audio Detected",
+                                    message: "This audio is longer than 20 minutes and may take a considerable amount of time to extract. Do you want to continue?",
+                                    preferredStyle: .alert
+                                )
+                                
+                                // Cancel button: do nothing
+                                alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                                
+                                // Continue button: proceed with playback/ripping
+                                alert.addAction(UIAlertAction(title: "Continue", style: .default, handler: { _ in
+                                    self?.playStreamAudio(from: stream.url)
+                                }))
+                                
+                                self?.present(alert, animated: true)
+                            }
+                        } else {
+                            self?.playStreamAudio(from: stream.url)
+                        }
+                    }
                     
-                    // Optional: Update play button state
-                    self?.musicPlayButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
-                    self?.musicView.isHidden = false
                     
-                    self?.ripAudioView.isHidden = true
-                    self?.downloadAudioView.isHidden = false
-                    self?.saveAudioView.isHidden = false
+                    // Step 4: Estimate duration before downloading
+                    //                    let asset = AVAsset(url: stream.url)
+                    //                    asset.loadValuesAsynchronously(forKeys: ["duration"]) {
+                    //                        var error: NSError?
+                    //                        let status = asset.statusOfValue(forKey: "duration", error: &error)
+                    //
+                    //                        if status == .loaded {
+                    //                            let durationSeconds = CMTimeGetSeconds(asset.duration)
+                    //                            print("🕒 Video Duration: \(durationSeconds) seconds")
+                    //
+                    //                            if durationSeconds > 20 * 60 {
+                    //                                DispatchQueue.main.async {
+                    //                                    let alert = UIAlertController(
+                    //                                        title: "Long Audio Detected",
+                    //                                        message: "This audio is longer than 20 minutes. It may take a while to process. Continue?",
+                    //                                        preferredStyle: .alert
+                    //                                    )
+                    //                                    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+                    //                                    alert.addAction(UIAlertAction(title: "Continue", style: .default) { _ in
+                    //                                        self?.playStreamAudio(from: stream.url)
+                    //                                    })
+                    //
+                    //                                    self?.present(alert, animated: true)
+                    //                                }
+                    //                            } else {
+                    //                                DispatchQueue.main.async {
+                    //                                    self?.playStreamAudio(from: stream.url)
+                    //                                }
+                    //                            }
+                    //                        } else {
+                    //                            print("⚠️ Could not determine duration, proceeding anyway")
+                    //                            DispatchQueue.main.async {
+                    //                                self?.playStreamAudio(from: stream.url)
+                    //                            }
+                    //                        }
+                    //                    }
+                    
+                    
                 }
             } else {
                 print("⚠️ No audio-only stream available to play.")
@@ -191,70 +264,82 @@ class ExtractAudioVC: UIViewController {
             print("❌ Failed to fetch YouTube streams: \(error)")
         }
     }
-
     
-    private func playStreamAudio(from url: URL) {
-        let asset = AVAsset(url: url)
-        let playerItem = AVPlayerItem(asset: asset)
+    private func extractDuration(from url: URL) -> Double? {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let queryItems = components.queryItems else {
+            return nil
+        }
         
-        // Assign to player
-        self.player = AVPlayer(playerItem: playerItem)
-        
-        // Load duration asynchronously
-        asset.loadValuesAsynchronously(forKeys: ["duration"]) { [weak self] in
-            guard let self = self else { return }
-
-            var error: NSError?
-            let status = asset.statusOfValue(forKey: "duration", error: &error)
-            
-            if status == .loaded {
-                DispatchQueue.main.async {
-                    self.player?.play()
-                    self.musicPlayButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
-                    self.startAVPlayerProgressTimer()
-                }
-            } else {
-                print("❌ Failed to load duration: \(error?.localizedDescription ?? "Unknown error")")
+        for item in queryItems {
+            if item.name == "dur", let value = item.value, let duration = Double(value) {
+                return duration
             }
         }
+        
+        return nil
+    }
+    
+    
+    private func playStreamAudio(from url: URL) {
+        self.showLoader()
+        
+        self.downloadSession = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+
+        if let resumeData = self.resumeData {
+            self.downloadTask = self.downloadSession?.downloadTask(withResumeData: resumeData)
+            self.resumeData = nil
+        } else {
+            self.downloadTask = self.downloadSession?.downloadTask(with: url)
+        }
+
+        self.downloadTask?.resume()
     }
 
     
-//    func downloadAudio(from url: URL, completion: @escaping (URL?) -> Void) {
-//        let session = URLSession(configuration: .default)
-//        let task = session.downloadTask(with: url) { tempURL, response, error in
-//            if let error = error {
-//                print("❌ Download error: \(error.localizedDescription)")
-//                DispatchQueue.main.async { completion(nil) }
-//                return
-//            }
-//
-//            guard let tempURL = tempURL else {
-//                print("❌ Temporary file missing")
-//                DispatchQueue.main.async { completion(nil) }
-//                return
-//            }
-//
-//            do {
-//                let fileManager = FileManager.default
-//                let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-//                let destinationURL = documentsURL.appendingPathComponent("downloaded_audio.m4a")
-//
-//                // Remove if already exists
-//                if fileManager.fileExists(atPath: destinationURL.path) {
-//                    try fileManager.removeItem(at: destinationURL)
-//                }
-//
-//                try fileManager.moveItem(at: tempURL, to: destinationURL)
-//                DispatchQueue.main.async { completion(destinationURL) }
-//            } catch {
-//                print("❌ File save error: \(error.localizedDescription)")
-//                DispatchQueue.main.async { completion(nil) }
-//            }
-//        }
-//        task.resume()
-//    }
-
+    private func prepareAVAudioPlayer(with fileURL: URL) {
+        do {
+            let audioPlayer = try AVAudioPlayer(contentsOf: fileURL)
+            self.audioPlayer = audioPlayer
+            audioPlayer.delegate = self
+            audioPlayer.prepareToPlay()
+            audioPlayer.play()
+            
+            self.hideLoader()
+            
+            self.musicSlider.minimumValue = 0
+            self.musicSlider.maximumValue = Float(audioPlayer.duration)
+            self.musicPlayButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
+            
+            // Optional: Update play button state
+            self.musicPlayButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
+            self.musicView.isHidden = false
+            
+            self.ripAudioView.isHidden = true
+            self.downloadAudioView.isHidden = false
+            self.saveAudioView.isHidden = false
+            
+            self.startAVAudioPlayerProgressTimer()
+            
+        } catch {
+            print("❌ AVAudioPlayer init failed: \(error.localizedDescription)")
+        }
+    }
+    
+    
+    private func startAVAudioPlayerProgressTimer() {
+        self.progressTimer?.invalidate()
+        self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            guard let self = self, let player = self.audioPlayer else { return }
+            
+            let currentTime = player.currentTime
+            let duration = player.duration
+            
+            self.musicSlider.value = Float(currentTime)
+            self.musicTimeLabel.text = String(format: "%02d:%02d", Int(currentTime) / 60, Int(currentTime) % 60)
+        }
+    }
+    
     
     func downloadAudioToFilesApp(from url: URL, fileName: String = "downloaded_audio.m4a", presentingVC: UIViewController) {
         let session = URLSession(configuration: .default)
@@ -263,62 +348,38 @@ class ExtractAudioVC: UIViewController {
                 print("❌ Download error: \(error.localizedDescription)")
                 return
             }
-
+            
             guard let tempURL = tempURL else {
                 print("❌ No temp file URL")
                 return
             }
-
+            
             do {
                 let fileManager = FileManager.default
                 let tempDirectory = fileManager.temporaryDirectory
                 let destinationURL = tempDirectory.appendingPathComponent(fileName)
-
+                
                 if fileManager.fileExists(atPath: destinationURL.path) {
                     try fileManager.removeItem(at: destinationURL)
                 }
-
+                
                 try fileManager.moveItem(at: tempURL, to: destinationURL)
-
+                
                 // Present document picker to export
                 DispatchQueue.main.async {
                     let docPicker = UIDocumentPickerViewController(forExporting: [destinationURL])
                     docPicker.delegate = presentingVC as? UIDocumentPickerDelegate
                     presentingVC.present(docPicker, animated: true, completion: nil)
                 }
-
+                
             } catch {
                 print("❌ File move error: \(error.localizedDescription)")
             }
         }
-
+        
         task.resume()
     }
-        
-        
-    private func startAVPlayerProgressTimer() {
-        self.progressTimer?.invalidate()
-        
-        self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            guard let self = self,
-                  let player = self.player,
-                  let item = player.currentItem else { return }
-
-            let duration = item.duration
-            let current = player.currentTime()
-            
-            guard duration.isNumeric && duration.seconds > 0 else { return }
-
-            let currentTime = current.seconds
-            let totalDuration = duration.seconds
-            
-            self.musicSlider.value = Float(currentTime / totalDuration)
-            self.musicTimeLabel.text = String(format: "%02d:%02d", Int(currentTime) / 60, Int(currentTime) % 60)
-        }
-    }
-
-
-
+    
     func applyGlassEffect(to targetView: UIView) {
         
         targetView.backgroundColor = .clear
@@ -344,6 +405,56 @@ class ExtractAudioVC: UIViewController {
         targetView.insertSubview(blurView, at: 0)
     }
     
+    private func hideLoader() {
+        self.customLoaderView?.hideLoader()
+        self.customLoaderView?.removeFromSuperview()
+    }
+    
+    private func showLoader() {
+        self.presentIAP()
+    }
+    
+    private func presentIAP() {
+        customLoaderView?.removeFromSuperview()
+        
+        if let memberInfo = Bundle.main.loadNibNamed("CustomLoader", owner: nil)?.first as? CustomLoader {
+            customLoaderView = memberInfo
+            memberInfo.translatesAutoresizingMaskIntoConstraints = false
+            customLoaderView?.isUserInteractionEnabled = true
+            
+            memberInfo.alpha = 0
+            
+            // Get the key window
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) ?? windowScene.windows.first else {
+                return
+            }
+            
+            // Add to window instead of view controller's view
+            self.view.addSubview(memberInfo)
+            
+            // Use safe area of window
+            NSLayoutConstraint.activate([
+                memberInfo.topAnchor.constraint(equalTo: keyWindow.topAnchor, constant: 0),
+                memberInfo.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor, constant: 0),
+                memberInfo.leadingAnchor.constraint(equalTo: keyWindow.leadingAnchor, constant: 0),
+                memberInfo.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: 0)
+            ])
+            
+            // Animate appearance
+            UIView.animate(withDuration: 0.5,
+                           delay: 0,
+                           usingSpringWithDamping: 0.8,
+                           initialSpringVelocity: 0.5,
+                           options: .curveEaseOut) {
+                memberInfo.alpha = 1
+                memberInfo.transform = .identity
+            }
+            
+            memberInfo.showLoader()
+        }
+    }
+    
     class func fetchInstance() -> Self {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         return storyboard.instantiateViewController(withIdentifier: "\(Self.self)") as! Self
@@ -358,4 +469,129 @@ extension ExtractAudioVC: AVAudioPlayerDelegate  {
             print("Audio playback finished with errors.")
         }
     }
+}
+
+extension ExtractAudioVC: URLSessionDownloadDelegate {
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
+                    didWriteData bytesWritten: Int64,
+                    totalBytesWritten: Int64,
+                    totalBytesExpectedToWrite: Int64) {
+        guard totalBytesExpectedToWrite > 0 else { return }
+
+        let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+        let percentage = Int(progress * 100)
+        print("📦 Download Progress: \(percentage)%")
+
+        // UI updates must happen on the main thread
+        DispatchQueue.main.async {
+            self.customLoaderView?.showPrecentage(percentage: percentage)
+        }
+    }
+
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
+                    didFinishDownloadingTo location: URL) {
+        do {
+            let fileManager = FileManager.default
+            let safeTitle = safeFileName(from: self.videoTitle)
+            let destinationURL = fileManager.temporaryDirectory.appendingPathComponent("\(safeTitle).m4a")
+
+            if fileManager.fileExists(atPath: destinationURL.path) {
+                try fileManager.removeItem(at: destinationURL)
+            }
+
+            try fileManager.copyItem(at: location, to: destinationURL)
+
+            DispatchQueue.main.async {
+                self.hideLoader()
+                
+                
+                   if let imageURL = URL(string: self.thumbnailURLString) {
+                    URLSession.shared.dataTask(with: imageURL) { data, response, error in
+                        guard let data = data, error == nil else {
+                            print("❌ Failed to load thumbnail image")
+                            return
+                        }
+                        
+                        DispatchQueue.main.async {
+                            let extractAudioViewVC = ExtractAudioViewVC.fetchInstance()
+                            extractAudioViewVC.modalPresentationStyle = .overFullScreen
+                            extractAudioViewVC.modalTransitionStyle = .crossDissolve
+                            
+                            extractAudioViewVC.musicTitle = self.videoTitle
+                            extractAudioViewVC.audioURL = destinationURL
+                            extractAudioViewVC.musicImageData = data
+                            extractAudioViewVC.authorName = self.author
+                            
+                            self.present(extractAudioViewVC, animated: true)
+                        }
+                    }.resume()
+                }
+                
+            }
+
+        } catch {
+            print("❌ File save error: \(error.localizedDescription)")
+        }
+    }
+
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask,
+                        didCompleteWithError error: Error?) {
+            if let error = error as NSError?, let resumeData = error.userInfo[NSURLSessionDownloadTaskResumeData] as? Data {
+                print("⚠️ Connection lost. Can resume download.")
+                self.resumeData = resumeData
+                // Optionally show a Retry button
+                
+                DispatchQueue.main.async {
+                            self.showResumeDownloadAlert()
+                        }
+            }
+        }
+    
+    func showResumeDownloadAlert() {
+        let alert = UIAlertController(
+            title: "Download Interrupted",
+            message: "The download was interrupted. Would you like to resume?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Resume", style: .default) { _ in
+            self.resumeDownload()
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        self.present(alert, animated: true)
+    }
+
+    
+    func resumeDownload() {
+        guard let resumeData = self.resumeData else {
+            print("❌ No resume data available.")
+            return
+        }
+
+//        self.showLoader() // Optional: Show loader again
+
+        // Ensure downloadSession exists or create a new one
+        if self.downloadSession == nil {
+            self.downloadSession = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+        }
+
+        // Create new task from resumeData
+        self.downloadTask = self.downloadSession?.downloadTask(withResumeData: resumeData)
+        self.resumeData = nil // Clear after using
+        self.downloadTask?.resume()
+
+        print("▶️ Resuming download...")
+    }
+
+
+}
+
+
+func safeFileName(from title: String) -> String {
+    let invalidCharacters = CharacterSet(charactersIn: "/\\?%*|\"<>:")
+    return title.components(separatedBy: invalidCharacters).joined(separator: "_")
 }

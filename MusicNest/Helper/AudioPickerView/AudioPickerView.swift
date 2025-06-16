@@ -125,7 +125,8 @@ class AudioPickerView: UIView, UIDocumentPickerDelegate {
             artist: artist,
             date: dateAdded,
             isFavourite: false,
-            fileName: savedFileName
+            fileName: savedFileName,
+            isExtractedAudio: false
         )
         
         modelContext.insert(music)

@@ -38,14 +38,16 @@ class MusicModel {
     var date: Date
     var isFavourite: Bool
     var fileName: String // ← Store filename instead of audioData
+    var isExtractedAudio: Bool
     
-    init(title: String, imageData: Data, artist: String, date: Date, isFavourite: Bool, fileName: String) {
+    init(title: String, imageData: Data, artist: String, date: Date, isFavourite: Bool, fileName: String, isExtractedAudio: Bool) {
         self.title = title
         self.imageData = imageData
         self.artist = artist
         self.date = date
         self.isFavourite = isFavourite
         self.fileName = fileName
+        self.isExtractedAudio = isExtractedAudio
     }
 }
 

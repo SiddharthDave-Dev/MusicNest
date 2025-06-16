@@ -165,7 +165,7 @@ class TabbarVC: UIViewController {
                 return
             }
             
-            let music = MusicModel(title: "Demo", imageData: imageData, artist: "artist", date: Date(), isFavourite: false, fileName: "")
+            let music = MusicModel(title: "Demo", imageData: imageData, artist: "artist", date: Date(), isFavourite: false, fileName: "", isExtractedAudio: false)
             modelContext.insert(music)
             
             do {

@@ -61,7 +61,7 @@ class SettingsVC: UIViewController {
             customLoaderView = memberInfo
             memberInfo.translatesAutoresizingMaskIntoConstraints = false
             customLoaderView?.isUserInteractionEnabled = true
-           
+            customLoaderView?.hidePrecentage()
             memberInfo.alpha = 0
             
             // Get the key window

@@ -14,6 +14,7 @@ enum SortOption {
     case date
     case nameAsc
     case nameDesc
+    case isExtractedAudio
 }
 
 struct MusicSection {
@@ -155,7 +156,14 @@ class HomeVC: UIViewController {
             self?.handleSortSelection(.nameDesc)
         }
         
-        let menu = UIMenu(title: "", children: [dateAction, nameAscAction, nameDescAction])
+        let extractAudioAction = UIAction(
+            title: "Extract Audios",
+            image: currentSort == .isExtractedAudio ? UIImage(systemName: "checkmark") : nil
+        ) { [weak self] _ in
+            self?.handleSortSelection(.isExtractedAudio)
+        }
+        
+        let menu = UIMenu(title: "", children: [dateAction, nameAscAction, nameDescAction, extractAudioAction])
         sortButton.menu = menu
         sortButton.showsMenuAsPrimaryAction = true
     }
@@ -205,14 +213,20 @@ class HomeVC: UIViewController {
             sortView.backgroundColor = UIColor.orange.withAlphaComponent(0.3)
             switch selectedOption {
             case .date:
+                self.data = self.originalData
                 sectionedData = []
                 sortByDate()
             case .nameAsc:
+                self.data = self.originalData
                 //                originalData = fetchMusic()
                 sortAndGroupData(ascending: true)
             case .nameDesc:
+                self.data = self.originalData
                 //                originalData = fetchMusic()
                 sortAndGroupData(ascending: false)
+            case .isExtractedAudio:
+                self.data = self.originalData
+                filterExtractedAudioOnly()
             default:
                 break
             }
@@ -227,6 +241,12 @@ class HomeVC: UIViewController {
     private func sortByDate() {
         self.data = self.data.sorted { ($0.date) > ($1.date) }
     }
+    
+    private func filterExtractedAudioOnly() {
+        self.data = self.data.filter { $0.isExtractedAudio }
+    }
+
+
     
     private func sortByName(ascending: Bool) {
         self.data = self.data.sorted {
@@ -478,25 +498,28 @@ extension HomeVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            if currentSort == .nameAsc || currentSort == .nameDesc {
-                let musicToDelete = sectionedData[indexPath.section].items[indexPath.row]
-                deleteFromSwiftData(musicToDelete)
-                sectionedData[indexPath.section].items.remove(at: indexPath.row)
-                
-                if sectionedData[indexPath.section].items.isEmpty {
-                    sectionedData.remove(at: indexPath.section)
-                    tableView.deleteSections([indexPath.section], with: .automatic)
+            tableView.performBatchUpdates({
+                if currentSort == .nameAsc || currentSort == .nameDesc {
+                    let musicToDelete = sectionedData[indexPath.section].items[indexPath.row]
+                    deleteFromSwiftData(musicToDelete)
+                    sectionedData[indexPath.section].items.remove(at: indexPath.row)
+                    
+                    if sectionedData[indexPath.section].items.isEmpty {
+                        sectionedData.remove(at: indexPath.section)
+                        tableView.deleteSections(IndexSet(integer: indexPath.section), with: .automatic)
+                    } else {
+                        tableView.deleteRows(at: [indexPath], with: .automatic)
+                    }
                 } else {
+                    let musicToDelete = data[indexPath.row]
+                    deleteFromSwiftData(musicToDelete)
+                    data.remove(at: indexPath.row)
                     tableView.deleteRows(at: [indexPath], with: .automatic)
                 }
-            } else {
-                let musicToDelete = data[indexPath.row]
-                deleteFromSwiftData(musicToDelete)
-                data.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: .automatic)
-            }
+            }, completion: nil)
         }
     }
+
     
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         let musicData = music(at: indexPath)

@@ -83,7 +83,7 @@ class AddPlaylistVC: UIViewController {
                 guard let self = self else { return }
                 guard let name = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return }
                 
-                let platlistMusicData = PlaylistMusicModel(title: music.title, imageData: music.imageData, artist: music.artist, date: music.date, isFavourite: music.isFavourite, fileName: music.fileName)
+                let platlistMusicData = PlaylistMusicModel(title: music.title, imageData: music.imageData, artist: music.artist, date: music.date, isFavourite: music.isFavourite, fileName: music.fileName, isExtractedAudio: music.isExtractedAudio)
                 
                 let newPlaylist = PlaylistModel(id: UUID(), playlistName: name, musicData: [platlistMusicData], createdAt: Date())
                 self.container.mainContext.insert(newPlaylist)
@@ -157,7 +157,7 @@ extension AddPlaylistVC: UITableViewDelegate, UITableViewDataSource {
                 self.showAlert(title: "Info", message: "\"\(music.title)\" is already in \"\(selectedPlaylist.playlistName)\".")
             } else {
                 // Append music and save
-                let platlistMusicData = PlaylistMusicModel(title: music.title, imageData: music.imageData, artist: music.artist, date: music.date, isFavourite: music.isFavourite, fileName: music.fileName)
+                let platlistMusicData = PlaylistMusicModel(title: music.title, imageData: music.imageData, artist: music.artist, date: music.date, isFavourite: music.isFavourite, fileName: music.fileName, isExtractedAudio: music.isExtractedAudio)
                 selectedPlaylist.musicData.append(platlistMusicData)
                 
                 do {

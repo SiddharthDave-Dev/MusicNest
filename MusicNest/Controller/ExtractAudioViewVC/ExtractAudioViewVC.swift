@@ -131,11 +131,23 @@ class ExtractAudioViewVC: UIViewController {
         }
 
         do {
+            let context = container.mainContext
+
+            let fetchDescriptor = FetchDescriptor<MusicModel>(
+                predicate: #Predicate { $0.title == title && $0.artist == authorName }
+            )
+
+            if let existing = try? context.fetch(fetchDescriptor), !existing.isEmpty {
+                print("⚠️ Music already exists: \(title) by \(authorName)")
+                return
+            }
+
             // Read audio file data
             let audioData = try Data(contentsOf: audioURL)
 
             // Save to Documents directory
-            let safeFileName = "\(title).m4a".replacingOccurrences(of: "/", with: "_")
+            let ext = audioURL.pathExtension.isEmpty ? "m4a" : audioURL.pathExtension
+            let safeFileName = "\(title).\(ext)".replacingOccurrences(of: "/", with: "_")
             guard let savedFileName = saveToDocumentsDirectory(audioData, fileName: safeFileName) else {
                 print("❌ Failed to save audio file to Documents")
                 return
@@ -152,17 +164,22 @@ class ExtractAudioViewVC: UIViewController {
                 isExtractedAudio: true
             )
 
-            let context = container.mainContext
             context.insert(music)
-
             try context.save()
             print("✅ MusicModel saved successfully")
 
-            let alert = UIAlertController(title: "Saved", message: "Audio has been saved to your library.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            self.present(alert, animated: true)
-
-            self.dismiss(animated: true)
+            DispatchQueue.main.async {
+                let alert = UIAlertController(
+                    title: "Saved",
+                    message: "Audio has been saved to your library.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                    self.dismiss(animated: true)
+                })
+                
+                self.present(alert, animated: true)
+            }
 
         } catch {
             print("❌ Failed to read audio data or save: \(error.localizedDescription)")

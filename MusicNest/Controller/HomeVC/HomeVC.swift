@@ -516,9 +516,12 @@ extension HomeVC: UITableViewDelegate, UITableViewDataSource {
                     data.remove(at: indexPath.row)
                     tableView.deleteRows(at: [indexPath], with: .automatic)
                 }
-            }, completion: nil)
+            }, completion: { _ in
+                self.originalData = self.fetchMusic()
+            })
         }
     }
+
 
     
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {

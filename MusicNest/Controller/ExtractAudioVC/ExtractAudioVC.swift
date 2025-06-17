@@ -17,6 +17,7 @@ class ExtractAudioVC: UIViewController {
         progressTimer?.invalidate()
     }
     
+    @IBOutlet weak var ripAudioButtonBottomConstraint: NSLayoutConstraint!
     @IBOutlet weak var musicTimeLabel: UILabel!
     @IBOutlet weak var musicPlayButton: UIButton!
     @IBOutlet weak var musicSlider: UISlider!
@@ -50,6 +51,8 @@ class ExtractAudioVC: UIViewController {
     var videoTitle: String = "Unknown"
     var author: String = "Unknown"
     var thumbnailURLString: String = ""
+    
+    var isPlaying: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -124,6 +127,36 @@ class ExtractAudioVC: UIViewController {
         self.musicView.isHidden = true
         self.downloadAudioView.isHidden = true
         self.saveAudioView.isHidden = true
+        
+        NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handleMusicViewVisibilityChange(_:)),
+                name: .musicViewVisibilityChanged,
+                object: nil
+            )
+        
+        if !self.isPlaying {
+            self.ripAudioButtonBottomConstraint.constant = 125
+        } else {
+            self.ripAudioButtonBottomConstraint.constant = 55
+        }
+    }
+    
+    @objc private func handleMusicViewVisibilityChange(_ notification: Notification) {
+        if let isHidden = notification.object as? Bool {
+            self.isPlaying = isHidden
+            if !isHidden {
+                self.ripAudioButtonBottomConstraint.constant = 125
+            } else {
+                self.ripAudioButtonBottomConstraint.constant = 55
+            }
+            
+            UIView.animate(withDuration: 0.3, animations: {
+                self.view.layoutIfNeeded()
+            })
+            
+            print("🔁 isPlaying updated: \(isPlaying)")
+        }
     }
     
     func fetchYouTubeStream(url urlString: String) async {

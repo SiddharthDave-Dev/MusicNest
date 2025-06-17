@@ -1394,6 +1394,7 @@
                         <outlet property="pasteURLLabel" destination="aC6-dO-h9L" id="swX-9C-Qkb"/>
                         <outlet property="pasteView" destination="a6D-nX-Rh0" id="TVD-dI-7j6"/>
                         <outlet property="ripAudioButton" destination="ZIq-7j-bLY" id="bLC-Vx-syz"/>
+                        <outlet property="ripAudioButtonBottomConstraint" destination="K5q-TJ-d04" id="LFR-yW-dAQ"/>
                         <outlet property="ripAudioLabel" destination="JsI-Yz-8T2" id="ZMu-ac-iLF"/>
                         <outlet property="ripAudioView" destination="ft2-wl-OVk" id="Qm2-NM-V5b"/>
                         <outlet property="saveAudioButton" destination="53y-i1-o0b" id="jH2-3X-QKp"/>

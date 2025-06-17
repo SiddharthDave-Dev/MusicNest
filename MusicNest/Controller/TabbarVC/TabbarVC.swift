@@ -274,7 +274,8 @@ class TabbarVC: UIViewController {
     
     @IBAction func didTappedSmallViewMusicCancelButton(_ sender: Any) {
         self.audioPlayer?.pause()
-        self.musicView.isHidden = true
+//        self.musicView.isHidden = true
+        setMusicViewHidden(true)
     }
     
     @IBAction func didTappedSmallViewMusicPlayButton(_ sender: Any) {
@@ -467,7 +468,7 @@ class TabbarVC: UIViewController {
         self.cancelButton.isHidden = true
         
         self.musicView.isHidden = true
-        
+        setMusicViewHidden(true)
         self.smallViewMusicImage.cornerRadius = 10
         self.expandedViewMusicImage.cornerRadius = 20
         
@@ -645,6 +646,10 @@ class TabbarVC: UIViewController {
             homeVC.delegate = self
         }
         
+        if let extractAudioVC = vc as? ExtractAudioVC {
+            extractAudioVC.isPlaying = musicView.isHidden
+        }
+        
         if let playlistVC = vc as? PlaylistVC {
             playlistVC.musicView = self.musicView
             playlistVC.viewController = self
@@ -678,6 +683,12 @@ class TabbarVC: UIViewController {
         self.view.bringSubviewToFront(musicView)
     }
     
+    func setMusicViewHidden(_ hidden: Bool) {
+        musicView.isHidden = hidden
+
+        NotificationCenter.default.post(name: .musicViewVisibilityChanged, object: hidden)
+    }
+
 //    private func showMusicView(_ musicData: MusicModel) {
 //        if !isExpanded {
 //            self.musicView.isHidden = false
@@ -732,8 +743,8 @@ class TabbarVC: UIViewController {
     
     private func showMusicView(_ musicData: MusicModel) {
         if !isExpanded {
-            self.musicView.isHidden = false
-            
+//            self.musicView.isHidden = false
+            self.setMusicViewHidden(false)
             self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
             self.smallViewMusicTitle.text = musicData.title
             
@@ -786,7 +797,7 @@ class TabbarVC: UIViewController {
     private func showMusicView(_ musicData: PlaylistMusicModel) {
         if !isExpanded {
             self.musicView.isHidden = false
-            
+            setMusicViewHidden(false)
             self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
             self.smallViewMusicTitle.text = musicData.title
             
@@ -1124,7 +1135,11 @@ class TabbarVC: UIViewController {
     
     private func playNextTrack() {
         if self.isPlaylist {
-            guard self.currentMusicIndex < self.playlistMusicData.count - 1 else { return }
+            guard self.currentMusicIndex < self.playlistMusicData.count - 1 else {
+                self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+                self.expandedViewMusicPlayButton.setImage(UIImage(named: "play"), for: .normal)
+                return
+            }
             self.currentMusicIndex += 1
             let nextMusic = self.playlistMusicData[currentMusicIndex]
             self.showMusicView(nextMusic)
@@ -1132,7 +1147,11 @@ class TabbarVC: UIViewController {
             self.updateNowPlayingPlaybackState(isPlaying: true)
             self.updateNavigationButtons()
         } else {
-            guard self.currentMusicIndex < self.musicData.count - 1 else { return }
+            guard self.currentMusicIndex < self.musicData.count - 1 else {
+                self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+                self.expandedViewMusicPlayButton.setImage(UIImage(named: "play"), for: .normal)
+                return
+            }
             self.currentMusicIndex += 1
             let nextMusic = self.musicData[currentMusicIndex]
             self.showMusicView(nextMusic)
@@ -1252,4 +1271,8 @@ extension TabbarVC: AVAudioPlayerDelegate  {
             print("Audio playback finished with errors.")
         }
     }
+}
+
+extension Notification.Name {
+    static let musicViewVisibilityChanged = Notification.Name("musicViewVisibilityChanged")
 }

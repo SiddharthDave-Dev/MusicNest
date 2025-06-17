@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Reusable
 
 class HomeTVC: UITableViewCell {
 
@@ -17,7 +18,9 @@ class HomeTVC: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         
-        self.musicImage.layer.cornerRadius = 10
+        self.musicImage.borderColor = .white
+        self.musicImage.borderWidth = 1
+        self.musicImage.cornerRadius = 10
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {

@@ -9,6 +9,7 @@ import UIKit
 import AVFAudio
 import Reusable
 import SwiftData
+import AVFoundation
 
 class ExtractAudioViewVC: UIViewController {
 
@@ -80,38 +81,40 @@ class ExtractAudioViewVC: UIViewController {
 
     
     @IBAction func didTappedDownlaodAudioButton(_ sender: Any) {
-        guard let sourceURL = self.audioURL else {
-            print("❌ audioURL is nil")
-            return
-        }
-
-        do {
-            // Check if file exists at sourceURL
-            guard FileManager.default.fileExists(atPath: sourceURL.path) else {
-                print("❌ File does not exist at path: \(sourceURL.path)")
-                return
-            }
-
-            // Copy file to a known temp location (optional, but safer for export)
-            let fileName = sourceURL.lastPathComponent
-            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-
-            if sourceURL != tempURL {
-                if FileManager.default.fileExists(atPath: tempURL.path) {
-                    try FileManager.default.removeItem(at: tempURL)
-                }
-                try FileManager.default.copyItem(at: sourceURL, to: tempURL)
-            }
-
-            // Show export dialog to save to "On My iPhone"
-            let documentPicker = UIDocumentPickerViewController(forExporting: [tempURL])
-            documentPicker.delegate = self
-            documentPicker.modalPresentationStyle = .formSheet
-            self.present(documentPicker, animated: true)
-
-        } catch {
-            print("❌ Failed to prepare file for download: \(error.localizedDescription)")
-        }
+//        guard let sourceURL = self.audioURL else {
+//            print("❌ audioURL is nil")
+//            return
+//        }
+//
+//        do {
+//            // Check if file exists at sourceURL
+//            guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+//                print("❌ File does not exist at path: \(sourceURL.path)")
+//                return
+//            }
+//
+//            // Copy file to a known temp location (optional, but safer for export)
+//            let fileName = sourceURL.lastPathComponent
+//            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+//
+//            if sourceURL != tempURL {
+//                if FileManager.default.fileExists(atPath: tempURL.path) {
+//                    try FileManager.default.removeItem(at: tempURL)
+//                }
+//                try FileManager.default.copyItem(at: sourceURL, to: tempURL)
+//            }
+//
+//            // Show export dialog to save to "On My iPhone"
+//            let documentPicker = UIDocumentPickerViewController(forExporting: [tempURL])
+//            documentPicker.delegate = self
+//            documentPicker.modalPresentationStyle = .formSheet
+//            self.present(documentPicker, animated: true)
+//
+//        } catch {
+//            print("❌ Failed to prepare file for download: \(error.localizedDescription)")
+//        }
+        
+        self.exportAudioWithMetadata()
     }
 
     
@@ -192,6 +195,8 @@ class ExtractAudioViewVC: UIViewController {
         self.view.addSubview(sliderTimeLabel)
         self.container = AppDelegate.sharedContainer
         self.musicImage.cornerRadius = 20
+        self.musicImage.borderColor = .white
+        self.musicImage.borderWidth = 1
         
         self.applyGlassEffect(to: self.downloadAudioView)
         self.applyGlassEffect(to: self.saveAudioView)
@@ -274,6 +279,88 @@ class ExtractAudioViewVC: UIViewController {
         self.sliderTimeLabel.text = String(format: "%02d:%02d", minutes, seconds)
         self.sliderTimeLabel.isHidden = false
     }
+
+    func exportAudioWithMetadata() {
+        guard let sourceURL = self.audioURL else {
+            print("❌ audioURL is nil")
+            return
+        }
+
+        // Input asset
+        let asset = AVAsset(url: sourceURL)
+
+        // Safe file name
+        let sanitizedTitle = (self.musicTitle ?? "Exported_\(UUID().uuidString)")
+            .replacingOccurrences(of: " ", with: "_")
+            .replacingOccurrences(of: "/", with: "-") // avoid invalid characters
+
+        let outputURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(sanitizedTitle + ".m4a")
+
+        // Remove file if already exists
+        try? FileManager.default.removeItem(at: outputURL)
+
+        // Create export session
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
+            print("❌ Cannot create AVAssetExportSession")
+            return
+        }
+
+        exportSession.outputFileType = .m4a
+        exportSession.outputURL = outputURL
+        exportSession.metadata = createAudioMetadata()
+
+        exportSession.exportAsynchronously {
+            DispatchQueue.main.async {
+                switch exportSession.status {
+                case .completed:
+                    print("✅ Export succeeded at: \(outputURL.path)")
+                    let documentPicker = UIDocumentPickerViewController(forExporting: [outputURL])
+                    documentPicker.delegate = self
+                    documentPicker.modalPresentationStyle = .formSheet
+                    self.present(documentPicker, animated: true)
+                case .failed:
+                    print("❌ Export failed: \(exportSession.error?.localizedDescription ?? "unknown error")")
+                case .cancelled:
+                    print("⚠️ Export cancelled")
+                default:
+                    break
+                }
+            }
+        }
+    }
+
+    private func createAudioMetadata() -> [AVMetadataItem] {
+        var metadataItems: [AVMetadataItem] = []
+
+        if let title = self.musicTitle {
+            let titleItem = AVMutableMetadataItem()
+            titleItem.keySpace = .common
+            titleItem.key = AVMetadataKey.commonKeyTitle as (NSCopying & NSObjectProtocol)
+            titleItem.value = title as (NSCopying & NSObjectProtocol)
+            metadataItems.append(titleItem)
+        }
+
+        if let artist = self.authorName {
+            let artistItem = AVMutableMetadataItem()
+            artistItem.keySpace = .common
+            artistItem.key = AVMetadataKey.commonKeyArtist as (NSCopying & NSObjectProtocol)
+            artistItem.value = artist as (NSCopying & NSObjectProtocol)
+            metadataItems.append(artistItem)
+        }
+
+        if let imageData = self.musicImageData {
+            let artworkItem = AVMutableMetadataItem()
+            artworkItem.keySpace = .iTunes
+            artworkItem.key = AVMetadataKey.iTunesMetadataKeyCoverArt as (NSCopying & NSObjectProtocol)
+            artworkItem.value = imageData as (NSCopying & NSObjectProtocol)
+            artworkItem.dataType = kCMMetadataBaseDataType_PNG as String
+            metadataItems.append(artworkItem)
+        }
+
+        return metadataItems
+    }
+
 
     
     func applyGlassEffect(to targetView: UIView) {

@@ -66,6 +66,8 @@ class TabbarVC: UIViewController {
     
     var isExpanded: Bool = false
     
+    private var remoteControlsSetupDone = false
+    
     private var currentChildVC: UIViewController?
     
     var audioPlayer: AVAudioPlayer?
@@ -1026,22 +1028,29 @@ class TabbarVC: UIViewController {
     
     
     private func setupRemoteTransportControls() {
+        guard !remoteControlsSetupDone else { return }
+        remoteControlsSetupDone = true
+
         let commandCenter = MPRemoteCommandCenter.shared()
         
         commandCenter.playCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.audioPlayer?.play()
+            self.smallViewMusicPlayButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
+            self.expandedViewMusicPlayButton.setImage(UIImage(named: "pause"), for: .normal)
             self.updateNowPlayingPlaybackState(isPlaying: true)
             return .success
         }
-        
+
         commandCenter.pauseCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.audioPlayer?.pause()
+            self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+            self.expandedViewMusicPlayButton.setImage(UIImage(named: "play"), for: .normal)
             self.updateNowPlayingPlaybackState(isPlaying: false)
             return .success
         }
-        
+
         commandCenter.togglePlayPauseCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             if self.audioPlayer?.isPlaying == true {
@@ -1053,19 +1062,19 @@ class TabbarVC: UIViewController {
             }
             return .success
         }
-        
+
         commandCenter.nextTrackCommand.isEnabled = true
         commandCenter.nextTrackCommand.addTarget { [weak self] _ in
             self?.playNextTrack()
             return .success
         }
-        
+
         commandCenter.previousTrackCommand.isEnabled = true
         commandCenter.previousTrackCommand.addTarget { [weak self] _ in
             self?.playPreviousTrack()
             return .success
         }
-        
+
         commandCenter.changePlaybackPositionCommand.isEnabled = true
         commandCenter.changePlaybackPositionCommand.addTarget { [weak self] event in
             guard let self = self,
@@ -1073,13 +1082,12 @@ class TabbarVC: UIViewController {
                   let positionEvent = event as? MPChangePlaybackPositionCommandEvent else {
                 return .commandFailed
             }
-            
+
             player.currentTime = positionEvent.positionTime
             self.updateNowPlayingPlaybackState(isPlaying: player.isPlaying)
-            
+
             return .success
         }
-        
     }
     
     
@@ -1164,7 +1172,11 @@ class TabbarVC: UIViewController {
     
     private func playPreviousTrack() {
         if self.isPlaylist {
-            guard self.currentMusicIndex > 0 else { return }
+            guard self.currentMusicIndex > 0 else {
+                self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+                self.expandedViewMusicPlayButton.setImage(UIImage(named: "play"), for: .normal)
+                return
+            }
             self.currentMusicIndex -= 1
             let previousMusic = self.playlistMusicData[currentMusicIndex]
             self.showMusicView(previousMusic)
@@ -1172,7 +1184,11 @@ class TabbarVC: UIViewController {
             self.updateNowPlayingPlaybackState(isPlaying: true)
             self.updateNavigationButtons()
         } else {
-            guard self.currentMusicIndex > 0 else { return }
+            guard self.currentMusicIndex > 0 else {
+                self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+                self.expandedViewMusicPlayButton.setImage(UIImage(named: "play"), for: .normal)
+                return
+            }
             self.currentMusicIndex -= 1
             let previousMusic = self.musicData[currentMusicIndex]
             self.showMusicView(previousMusic)

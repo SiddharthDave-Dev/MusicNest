@@ -424,7 +424,8 @@ class ExtractAudioVC: UIViewController {
         
         let tintOverlay = UIView(frame: targetView.bounds)
         tintOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        tintOverlay.backgroundColor = UIColor.white.withAlphaComponent(0.05)
+//        tintOverlay.backgroundColor = UIColor.white.withAlphaComponent(0.05)
+        tintOverlay.backgroundColor = UIColor.systemPink
         
         blurView.contentView.addSubview(tintOverlay)
         

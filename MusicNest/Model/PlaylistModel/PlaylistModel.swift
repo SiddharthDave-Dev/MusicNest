@@ -27,6 +27,7 @@ class PlaylistModel: ObservableObject {
 
 @Model
 class PlaylistMusicModel: ObservableObject {
+    var id: UUID
     var title: String
     var imageData: Data
     var artist: String
@@ -35,7 +36,8 @@ class PlaylistMusicModel: ObservableObject {
     var fileName: String // ← Store filename instead of audioData
     var isExtractedAudio: Bool
     
-    init(title: String, imageData: Data, artist: String, date: Date, isFavourite: Bool, fileName: String, isExtractedAudio: Bool) {
+    init(id: UUID, title: String, imageData: Data, artist: String, date: Date, isFavourite: Bool, fileName: String, isExtractedAudio: Bool) {
+        self.id = id
         self.title = title
         self.imageData = imageData
         self.artist = artist

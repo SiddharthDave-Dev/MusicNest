@@ -62,8 +62,8 @@
             filePath = "MusicNest/Controller/TabbarVC/TabbarVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1163"
-            endingLineNumber = "1163"
+            startingLineNumber = "1176"
+            endingLineNumber = "1176"
             landmarkName = "playNextTrack()"
             landmarkType = "7">
          </BreakpointContent>

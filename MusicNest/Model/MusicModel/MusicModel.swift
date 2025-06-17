@@ -32,6 +32,7 @@ import SwiftData
 
 @Model
 class MusicModel {
+    @Attribute(.unique) var id: UUID
     var title: String
     var imageData: Data
     var artist: String
@@ -41,6 +42,7 @@ class MusicModel {
     var isExtractedAudio: Bool
     
     init(title: String, imageData: Data, artist: String, date: Date, isFavourite: Bool, fileName: String, isExtractedAudio: Bool) {
+        self.id = UUID()
         self.title = title
         self.imageData = imageData
         self.artist = artist

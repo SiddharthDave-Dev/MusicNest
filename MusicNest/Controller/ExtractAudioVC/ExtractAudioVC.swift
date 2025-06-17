@@ -17,6 +17,9 @@ class ExtractAudioVC: UIViewController {
         progressTimer?.invalidate()
     }
     
+    @IBOutlet weak var clearView: UIView!
+    @IBOutlet weak var clearLabel: UILabel!
+    @IBOutlet weak var clearButton: UIButton!
     @IBOutlet weak var ripAudioButtonBottomConstraint: NSLayoutConstraint!
     @IBOutlet weak var musicTimeLabel: UILabel!
     @IBOutlet weak var musicPlayButton: UIButton!
@@ -57,13 +60,19 @@ class ExtractAudioVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.setUpUI()
+        self.urlPasteTF.text = ""
+        self.urlPasteTF.refreshPlaceholder()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         self.setUpUI()
+    }
+    
+    @IBAction func didTappedClearButton(_ sender: Any) {
+        self.urlPasteTF.text = ""
+        self.urlPasteTF.refreshPlaceholder()
     }
     
     @IBAction func didTappedMusicPlayButton(_ sender: UIButton) {
@@ -95,6 +104,7 @@ class ExtractAudioVC: UIViewController {
     @IBAction func didTappedRipAudioButton(_ sender: Any) {
         guard let urlText = urlPasteTF.text, !urlText.isEmpty else {
             print("⚠️ No URL entered")
+            showAlert(title: "Missing URL", message: "Please paste a YouTube URL before continuing.")
             return
         }
         
@@ -116,6 +126,7 @@ class ExtractAudioVC: UIViewController {
         self.urlPasteTF.setTopPlaceholder("Enter/Paste URL here", color: .white.withAlphaComponent(0.5))
         
         self.pasteView.isCircle = true
+        self.clearView.isCircle = true
         
         self.musicImage.cornerRadius = 10
         
@@ -165,11 +176,6 @@ class ExtractAudioVC: UIViewController {
             return
         }
         
-        //        self.showLoader()
-        
-        // Step 1: Fetch metadata first
-       
-        
         let videoURL = youtubeURL.absoluteString
         let oembedURLString = "https://www.youtube.com/oembed?url=\(videoURL)&format=json"
         
@@ -200,30 +206,6 @@ class ExtractAudioVC: UIViewController {
             if let stream = audioOnlyStreams.first {
                 // Step 3: Setup UI
                 DispatchQueue.main.async { [weak self] in
-                    //                    self?.musicTimeLabel.text = videoTitle
-//                    self?.musicSlider.value = 0
-                    
-//                    if let imageURL = URL(string: thumbnailURLString) {
-//                        URLSession.shared.dataTask(with: imageURL) { [weak self] data, response, error in
-//                            guard let data = data, error == nil,
-//                                  let image = UIImage(data: data) else {
-//                                print("❌ Failed to load thumbnail image")
-//                                return
-//                            }
-//                            
-//                            DispatchQueue.main.async {
-//                                self?.musicImage.image = image
-//                            }
-//                        }.resume()
-//                    }
-                    
-                    // Step 4: Play audio
-                    //                    let playerItem = AVPlayerItem(url: stream.url)
-                    //                                    self?.player = AVPlayer(playerItem: playerItem)
-                    //                                    self?.player?.play()
-                    //
-                    
-                    //                    self?.playStreamAudio(from: stream.url)
                     if let duration = self?.extractDuration(from: stream.url) {
                         print("🕒 Duration: \(duration) seconds")
                         
@@ -249,52 +231,17 @@ class ExtractAudioVC: UIViewController {
                             self?.playStreamAudio(from: stream.url)
                         }
                     }
-                    
-                    
-                    // Step 4: Estimate duration before downloading
-                    //                    let asset = AVAsset(url: stream.url)
-                    //                    asset.loadValuesAsynchronously(forKeys: ["duration"]) {
-                    //                        var error: NSError?
-                    //                        let status = asset.statusOfValue(forKey: "duration", error: &error)
-                    //
-                    //                        if status == .loaded {
-                    //                            let durationSeconds = CMTimeGetSeconds(asset.duration)
-                    //                            print("🕒 Video Duration: \(durationSeconds) seconds")
-                    //
-                    //                            if durationSeconds > 20 * 60 {
-                    //                                DispatchQueue.main.async {
-                    //                                    let alert = UIAlertController(
-                    //                                        title: "Long Audio Detected",
-                    //                                        message: "This audio is longer than 20 minutes. It may take a while to process. Continue?",
-                    //                                        preferredStyle: .alert
-                    //                                    )
-                    //                                    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-                    //                                    alert.addAction(UIAlertAction(title: "Continue", style: .default) { _ in
-                    //                                        self?.playStreamAudio(from: stream.url)
-                    //                                    })
-                    //
-                    //                                    self?.present(alert, animated: true)
-                    //                                }
-                    //                            } else {
-                    //                                DispatchQueue.main.async {
-                    //                                    self?.playStreamAudio(from: stream.url)
-                    //                                }
-                    //                            }
-                    //                        } else {
-                    //                            print("⚠️ Could not determine duration, proceeding anyway")
-                    //                            DispatchQueue.main.async {
-                    //                                self?.playStreamAudio(from: stream.url)
-                    //                            }
-                    //                        }
-                    //                    }
-                    
-                    
                 }
             } else {
                 print("⚠️ No audio-only stream available to play.")
             }
         } catch {
             print("❌ Failed to fetch YouTube streams: \(error)")
+            
+            
+            delay(0) { [weak self] in
+                self?.showAlert(title: "Error", message: "Failed to fetch the audio stream from the provided YouTube URL. Please check the URL or try again later.")
+            }
         }
     }
     
@@ -489,6 +436,13 @@ class ExtractAudioVC: UIViewController {
         }
     }
     
+    func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        self.present(alert, animated: true)
+    }
+
+    
     class func fetchInstance() -> Self {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         return storyboard.instantiateViewController(withIdentifier: "\(Self.self)") as! Self
@@ -578,8 +532,8 @@ extension ExtractAudioVC: URLSessionDownloadDelegate {
                 // Optionally show a Retry button
                 
                 DispatchQueue.main.async {
-                            self.showResumeDownloadAlert()
-                        }
+                    self.showResumeDownloadAlert()
+                }
             }
         }
     

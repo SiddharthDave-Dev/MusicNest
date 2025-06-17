@@ -79,6 +79,7 @@ class TabbarVC: UIViewController {
     var playlistMusicData: [PlaylistMusicModel] = []
     var currentMusicIndex: Int = 0
     
+    private var homeVCReference: HomeVC?
     
     private var sliderTimeLabel: UILabel = {
         let label = UILabel()
@@ -277,6 +278,7 @@ class TabbarVC: UIViewController {
     @IBAction func didTappedSmallViewMusicCancelButton(_ sender: Any) {
         self.audioPlayer?.pause()
 //        self.musicView.isHidden = true
+        self.homeVCReference?.currentlyPlayingID = nil
         setMusicViewHidden(true)
     }
     
@@ -646,6 +648,15 @@ class TabbarVC: UIViewController {
         
         if let homeVC = vc as? HomeVC {
             homeVC.delegate = self
+            if (audioPlayer?.isPlaying ?? false) {
+                if self.isPlaylist {
+                    homeVC.currentlyPlayingID = self.playlistMusicData[self.currentMusicIndex].id
+                } else {
+                    homeVC.currentlyPlayingID = self.musicData[self.currentMusicIndex].id
+                }
+            }
+            
+            self.homeVCReference = homeVC
         }
         
         if let extractAudioVC = vc as? ExtractAudioVC {
@@ -1154,6 +1165,8 @@ class TabbarVC: UIViewController {
             self.updateNowPlayingInfo(music: nextMusic)
             self.updateNowPlayingPlaybackState(isPlaying: true)
             self.updateNavigationButtons()
+            
+            self.homeVCReference?.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
         } else {
             guard self.currentMusicIndex < self.musicData.count - 1 else {
                 self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
@@ -1166,6 +1179,8 @@ class TabbarVC: UIViewController {
             self.updateNowPlayingInfo(music: nextMusic)
             self.updateNowPlayingPlaybackState(isPlaying: true)
             self.updateNavigationButtons()
+            
+            self.homeVCReference?.currentlyPlayingID = self.musicData[currentMusicIndex].id
         }
         
     }
@@ -1183,6 +1198,8 @@ class TabbarVC: UIViewController {
             self.updateNowPlayingInfo(music: previousMusic)
             self.updateNowPlayingPlaybackState(isPlaying: true)
             self.updateNavigationButtons()
+            
+            self.homeVCReference?.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
         } else {
             guard self.currentMusicIndex > 0 else {
                 self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
@@ -1195,6 +1212,8 @@ class TabbarVC: UIViewController {
             self.updateNowPlayingInfo(music: previousMusic)
             self.updateNowPlayingPlaybackState(isPlaying: true)
             self.updateNavigationButtons()
+            
+            self.homeVCReference?.currentlyPlayingID = self.musicData[currentMusicIndex].id
         }
     }
     

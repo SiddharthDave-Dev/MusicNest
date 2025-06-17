@@ -15,6 +15,7 @@ class HomeTVC: UITableViewCell {
     @IBOutlet weak var musicTitleLabel: UILabel!
     @IBOutlet weak var musicImage: UIImageView!
     
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         
@@ -52,4 +53,23 @@ class HomeTVC: UITableViewCell {
         formatter.dateFormat = "MMM dd, yyyy"
         self.dateLabel.text = formatter.string(from: musicData.date)
     }
+    
+    func setPlayingState(isPlaying: Bool) {
+        if isPlaying {
+            self.musicImage.borderColor = .systemGreen
+            self.musicTitleLabel.textColor = .systemGreen
+            self.dateLabel.textColor = .systemGreen
+            self.musicArtistLabel.textColor = .systemGreen
+            
+            self.musicImage.borderWidth = 2
+        } else {
+            self.musicImage.borderColor = .white
+            self.musicTitleLabel.textColor = .white
+            self.dateLabel.textColor = .lightGray
+            self.musicArtistLabel.textColor = .lightGray
+            
+            self.musicImage.borderWidth = 1
+        }
+    }
+
 }

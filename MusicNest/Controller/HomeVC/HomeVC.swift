@@ -39,6 +39,14 @@ class HomeVC: UIViewController {
         return sectionedData.map { $0.title }
     }
     
+    var currentlyPlayingID: UUID? {
+        didSet {
+            delay(0) {
+                self.tableView.reloadData()
+            }
+        }
+    }
+    
     
     var data: [MusicModel] = [] {
         didSet {
@@ -353,6 +361,13 @@ class HomeVC: UIViewController {
         self.present(alert, animated: true)
     }
     
+//    func updateCurrentlyPlayingMusic(with id: UUID) {
+//        delay(0) {
+//            self.currentlyPlayingID = id
+//            self.tableView.reloadData()
+//        }
+//    }
+
     class func fetchInstance() -> Self {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         return storyboard.instantiateViewController(withIdentifier: "\(Self.self)") as! Self
@@ -474,9 +489,13 @@ extension HomeVC: UITableViewDelegate, UITableViewDataSource {
         cell.selectionStyle = .none
         let music = music(at: indexPath)
         cell.configureUI(music)
+        
+        let isPlaying = (music.id == currentlyPlayingID)
+        cell.setPlayingState(isPlaying: isPlaying)
+        
         return cell
     }
-    
+
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         if currentSort == .nameAsc || currentSort == .nameDesc {
             return 20
@@ -492,6 +511,8 @@ extension HomeVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let selectedMusic = music(at: indexPath)
         if let originalIndex = originalData.firstIndex(where: { $0.id == selectedMusic.id }) {
+            self.currentlyPlayingID = selectedMusic.id
+            self.tableView.reloadData()
             delegate?.didSelectMusic(originalData, currentMusicIndex: originalIndex)
         }
     }

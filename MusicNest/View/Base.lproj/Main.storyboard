@@ -1204,6 +1204,36 @@
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                     </textView>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hRe-Ll-3Ok">
+                                        <rect key="frame" x="10" y="155" width="56" height="35"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Clear" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TMf-CS-SyU">
+                                                <rect key="frame" x="10" y="10" width="36" height="15"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xPF-au-Dpg">
+                                                <rect key="frame" x="0.0" y="0.0" width="56" height="35"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                <connections>
+                                                    <action selector="didTappedClearButton:" destination="9V3-1W-y7u" eventType="touchUpInside" id="7Sf-uA-Xu0"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                        <color key="backgroundColor" white="1" alpha="0.5" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstItem="TMf-CS-SyU" firstAttribute="top" secondItem="hRe-Ll-3Ok" secondAttribute="top" constant="10" id="2Kd-NS-0p5"/>
+                                            <constraint firstAttribute="bottom" secondItem="xPF-au-Dpg" secondAttribute="bottom" id="4uy-Bu-AjK"/>
+                                            <constraint firstItem="TMf-CS-SyU" firstAttribute="leading" secondItem="hRe-Ll-3Ok" secondAttribute="leading" constant="10" id="GCu-jd-dqe"/>
+                                            <constraint firstItem="xPF-au-Dpg" firstAttribute="leading" secondItem="hRe-Ll-3Ok" secondAttribute="leading" id="Sqd-Mw-SRv"/>
+                                            <constraint firstAttribute="trailing" secondItem="TMf-CS-SyU" secondAttribute="trailing" constant="10" id="Yn2-Cx-fWZ"/>
+                                            <constraint firstItem="xPF-au-Dpg" firstAttribute="top" secondItem="hRe-Ll-3Ok" secondAttribute="top" id="fxt-g0-1LC"/>
+                                            <constraint firstAttribute="trailing" secondItem="xPF-au-Dpg" secondAttribute="trailing" id="gox-qg-djQ"/>
+                                            <constraint firstAttribute="height" constant="35" id="pOO-4Y-bid"/>
+                                            <constraint firstAttribute="bottom" secondItem="TMf-CS-SyU" secondAttribute="bottom" constant="10" id="uIN-L7-v54"/>
+                                        </constraints>
+                                    </view>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
@@ -1214,6 +1244,8 @@
                                     <constraint firstAttribute="height" constant="200" id="hCM-kX-LDm"/>
                                     <constraint firstItem="a6D-nX-Rh0" firstAttribute="top" secondItem="Bai-hR-3mk" secondAttribute="bottom" constant="6" id="hd8-zW-wg9"/>
                                     <constraint firstAttribute="trailing" secondItem="a6D-nX-Rh0" secondAttribute="trailing" constant="20" id="lye-f4-fX1"/>
+                                    <constraint firstAttribute="bottom" secondItem="hRe-Ll-3Ok" secondAttribute="bottom" constant="10" id="x0U-Mr-6QG"/>
+                                    <constraint firstItem="hRe-Ll-3Ok" firstAttribute="leading" secondItem="4UO-5l-iBq" secondAttribute="leading" constant="10" id="zfz-Yh-3TB"/>
                                 </constraints>
                             </view>
                             <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Byt-Ls-nPd">
@@ -1381,6 +1413,9 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="clearButton" destination="xPF-au-Dpg" id="QhB-rF-teb"/>
+                        <outlet property="clearLabel" destination="TMf-CS-SyU" id="vah-bx-uOc"/>
+                        <outlet property="clearView" destination="hRe-Ll-3Ok" id="trP-h7-tV0"/>
                         <outlet property="downlaodAudioButton" destination="AE7-yM-nIL" id="tVw-4T-aZk"/>
                         <outlet property="downlaodAudioLabel" destination="Tex-c2-L2M" id="keL-IA-h1M"/>
                         <outlet property="downloadAudioView" destination="KNE-iE-RxF" id="cwV-zQ-Ehk"/>

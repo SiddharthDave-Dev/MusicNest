@@ -52,7 +52,9 @@ class AddPlaylistVC: UIViewController {
     
     func fetchPlaylist() -> [PlaylistModel] {
         let context = container.mainContext
-        let fetchDescriptor = FetchDescriptor<PlaylistModel>()
+        let fetchDescriptor = FetchDescriptor<PlaylistModel>(
+            sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+        )
         
         do {
             let ideas = try context.fetch(fetchDescriptor)

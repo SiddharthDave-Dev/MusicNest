@@ -16,6 +16,9 @@ class PlaylistVC: UIViewController {
     var container: ModelContainer!
     weak var songDelegate: HomeVCDelegate?
     
+    
+    private var originalPlaylistData: [PlaylistModel] = []
+    
     private var playlistData: [PlaylistModel] = [] {
         didSet {
             delay(0) {
@@ -43,7 +46,8 @@ class PlaylistVC: UIViewController {
     private func setUp() {
         self.container = AppDelegate.sharedContainer
         
-        self.playlistData = self.fetchPlaylist()
+        self.originalPlaylistData = self.fetchPlaylist()
+        self.playlistData = self.originalPlaylistData
     }
     
     private func registerTableView() {
@@ -55,7 +59,9 @@ class PlaylistVC: UIViewController {
     
     func fetchPlaylist() -> [PlaylistModel] {
         let context = container.mainContext
-        let fetchDescriptor = FetchDescriptor<PlaylistModel>()
+        let fetchDescriptor = FetchDescriptor<PlaylistModel>(
+            sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+        )
         
         do {
             let ideas = try context.fetch(fetchDescriptor)
@@ -64,6 +70,26 @@ class PlaylistVC: UIViewController {
         } catch {
             print("❌ Failed to fetch ideas: \(error)")
             return []
+        }
+    }
+    
+    func filter(with query: String) {
+        if query.isEmpty {
+            self.playlistData = self.originalPlaylistData
+        } else {
+            self.playlistData = self.originalPlaylistData.filter { playlist in
+                return playlist.playlistName.lowercased().contains(query)
+            }
+        }
+        self.tableView.reloadData()
+    }
+    
+    func reloadData() {
+        self.originalPlaylistData = self.fetchPlaylist()
+        self.playlistData = self.originalPlaylistData
+        
+        delay(0) {
+            self.tableView.reloadData()
         }
     }
     
@@ -102,7 +128,10 @@ extension PlaylistVC: UITableViewDelegate, UITableViewDataSource {
         favoriteVC.modalTransitionStyle = .crossDissolve
 
         favoriteVC.isPlaylist = true
-        favoriteVC.playlistData = data.musicData
+        favoriteVC.playlistData = data
+        favoriteVC.playlistMusicData = data.musicData.sorted(by: { date1, date2 in
+            return date1.date < date2.date
+        })
         favoriteVC.delegate = self
         favoriteVC.playlistName = data.playlistName
         
@@ -129,6 +158,25 @@ extension PlaylistVC: UITableViewDelegate, UITableViewDataSource {
         }
     }
 
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            let playlist = self.playlistData[indexPath.row]
+
+            // Remove from context
+            self.container.mainContext.delete(playlist)
+
+            do {
+                try self.container.mainContext.save()
+
+                // Remove from array and update table
+                self.playlistData.remove(at: indexPath.row)
+                tableView.deleteRows(at: [indexPath], with: .automatic)
+
+            } catch {
+                print("❌ Failed to delete playlist: \(error.localizedDescription)")
+            }
+        }
+    }
 }
 
 extension PlaylistVC: FavoriteVCDelegate {

@@ -48,12 +48,24 @@ class AudioPickerView: UIView, UIDocumentPickerDelegate {
         
         DispatchQueue.global(qos: .userInitiated).async {
             for url in urls {
-                let isAccessing = url.startAccessingSecurityScopedResource()
+                var isAccessing = false
+                DispatchQueue.main.sync {
+                    isAccessing = url.startAccessingSecurityScopedResource()
+                }
+
+                guard FileManager.default.fileExists(atPath: url.path) else {
+                    print("❌ File not found at path: \(url.path)")
+                    continue
+                }
+
                 defer {
                     if isAccessing {
-                        url.stopAccessingSecurityScopedResource()
+                        DispatchQueue.main.async {
+                            url.stopAccessingSecurityScopedResource()
+                        }
                     }
                 }
+
                 self.extractAndSaveMetadata(from: url)
             }
 
@@ -62,6 +74,8 @@ class AudioPickerView: UIView, UIDocumentPickerDelegate {
                 self.removeFromSuperview()
             }
         }
+
+
     }
 
     

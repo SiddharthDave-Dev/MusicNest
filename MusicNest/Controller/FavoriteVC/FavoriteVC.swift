@@ -24,8 +24,6 @@ class FavoriteVC: UIViewController {
     var data: [MusicModel] = [] {
         didSet {
             delay(0) {
-                
-                
                 if self.data.isEmpty {
                     self.emptyDataView.updateLabel(text: "No Favorite Songs", color: .white)
                     self.tableView.backgroundView = self.emptyDataView
@@ -38,10 +36,12 @@ class FavoriteVC: UIViewController {
         }
     }
     
-    var playlistData: [PlaylistMusicModel] = [] {
+    var playlistData: PlaylistModel?
+    
+    var playlistMusicData: [PlaylistMusicModel] = [] {
         didSet {
             delay(0) {
-                if self.playlistData.isEmpty {
+                if self.playlistMusicData.isEmpty {
                     self.emptyDataView.updateLabel(text: "No Song in Playlist", color: .white)
                     self.tableView.backgroundView = self.emptyDataView
                 } else {
@@ -66,6 +66,47 @@ class FavoriteVC: UIViewController {
 
         self.setUp()
         self.registerTableView()
+    }
+    
+    @IBAction func didTappedAddButton(_ sender: Any) {
+        
+            let allAudioVC = AllAudioVC.fetchInstance()
+            
+            allAudioVC.isAddNewData = false
+            allAudioVC.playlistData = self.playlistData
+            allAudioVC.selectedMusicIDs = self.isPlaylist ? Set(self.playlistMusicData.map { $0.id }) : Set(self.data.map { $0.id })
+            allAudioVC.isPlaylist = self.isPlaylist
+            
+            if let sheet = allAudioVC.sheetPresentationController {
+                sheet.prefersGrabberVisible = false
+                sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+                sheet.prefersEdgeAttachedInCompactHeight = true
+                sheet.detents = [.large()] // Full height to avoid default scroll-to-dismiss
+            }
+            
+            allAudioVC.isModalInPresentation = true
+            
+            allAudioVC.onDismiss = {
+                delay(0) {
+                    if self.isPlaylist {
+                        if let updatedPlaylist = self.fetchPlaylist() {
+                            self.playlistData = updatedPlaylist
+                            self.playlistMusicData = updatedPlaylist.musicData.sorted(by: { date1, date2 in
+                                return date1.date < date2.date
+                            })
+                            self.tableView.reloadData()
+                        } else {
+                            print("❌ Playlist not found or failed to fetch")
+                        }
+                    } else {
+                        self.data = self.fetchFavoriteMusic()
+                        self.tableView.reloadData()
+                    }
+                }
+            }
+            
+            self.present(allAudioVC, animated: true)
+        
     }
     
     @IBAction func didTappedBackButton(_ sender: Any) {
@@ -95,11 +136,13 @@ class FavoriteVC: UIViewController {
     
     func fetchFavoriteMusic() -> [MusicModel] {
         let context = container.mainContext
-        
-        // Add a predicate to filter only favorites
+
         let predicate = #Predicate<MusicModel> { $0.isFavourite == true }
-        let fetchDescriptor = FetchDescriptor<MusicModel>(predicate: predicate)
-        
+        let fetchDescriptor = FetchDescriptor<MusicModel>(
+            predicate: predicate,
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+
         do {
             let favorites = try context.fetch(fetchDescriptor)
             print("✅ Fetched \(favorites.count) favorite songs")
@@ -110,6 +153,61 @@ class FavoriteVC: UIViewController {
         }
     }
 
+
+    
+    func fetchPlaylist() -> PlaylistModel? {
+        let context = container.mainContext
+        
+        guard let playlistID = self.playlistData?.id else {
+            print("❌ Playlist ID not found")
+            return nil
+        }
+        
+        let predicate = #Predicate<PlaylistModel> { $0.id == playlistID }
+        
+        let fetchDescriptor = FetchDescriptor<PlaylistModel>(
+            predicate: predicate,
+        )
+        
+        do {
+            let results = try context.fetch(fetchDescriptor)
+            print("✅ Fetched \(results.count) playlist(s)")
+            return results.first // Return the first (and only) match
+        } catch {
+            print("❌ Failed to fetch playlist: \(error)")
+            return nil
+        }
+    }
+
+    
+    func deleteFromSwiftData(_ item: MusicModel) {
+        guard let context = container?.mainContext else { return }
+        
+        // Delete audio file from documents directory
+        let fileURL = getDocumentsDirectory().appendingPathComponent(item.fileName)
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            do {
+                try FileManager.default.removeItem(at: fileURL)
+                print("🗑️ Deleted audio file: \(fileURL.lastPathComponent)")
+            } catch {
+                print("❌ Failed to delete file: \(error)")
+            }
+        }
+        
+        // Delete from SwiftData
+        context.delete(item)
+        
+        do {
+            try context.save()
+            print("✅ Deleted item from SwiftData.")
+        } catch {
+            print("❌ Failed to delete item: \(error)")
+        }
+    }
+    
+    func getDocumentsDirectory() -> URL {
+        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
     
     class func fetchInstance() -> Self {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
@@ -120,7 +218,7 @@ class FavoriteVC: UIViewController {
 
 extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.isPlaylist ? self.playlistData.count : self.data.count
+        return self.isPlaylist ? self.playlistMusicData.count : self.data.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -130,7 +228,7 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
         cell.selectionStyle = .none
         
         if self.isPlaylist {
-            cell.configureUI(self.playlistData[indexPath.row])
+            cell.configureUI(self.playlistMusicData[indexPath.row])
         } else {
             cell.configureUI(self.data[indexPath.row])
         }
@@ -146,12 +244,12 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
         
         if self.isPlaylist {
             
-            let selectedMusic = self.playlistData[indexPath.row]
+            let selectedMusic = self.playlistMusicData[indexPath.row]
             
             // Find the index in originalData
-            if let originalIndex = self.playlistData.firstIndex(where: { $0.id == selectedMusic.id }) {
+            if let originalIndex = self.playlistMusicData.firstIndex(where: { $0.id == selectedMusic.id }) {
                 print("Selected index in originalData: \(originalIndex)")
-                self.delegate?.didSelectMusic(self.playlistData, currentMusicIndex: originalIndex)
+                self.delegate?.didSelectMusic(self.playlistMusicData, currentMusicIndex: originalIndex)
             }
         } else {
             
@@ -169,17 +267,48 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-//            let itemToDelete = data[indexPath.row]
-//
-//            tableView.beginUpdates()
-//            
-//            deleteFromSwiftData(itemToDelete) // persist first
-//            data.remove(at: indexPath.row)    // then update model
-//            tableView.deleteRows(at: [indexPath], with: .automatic)
-//
-//            tableView.endUpdates()
+            
+            if self.isPlaylist {
+                let itemToDelete = self.playlistMusicData[indexPath.row]
+
+                // Remove from data source
+                self.playlistMusicData.remove(at: indexPath.row)
+
+                // Remove from playlist model and persist
+                self.playlistData?.musicData.removeAll(where: { $0.id == itemToDelete.id })
+
+                do {
+                    try self.container.mainContext.save()
+                    print("✅ Deleted music from playlist")
+                } catch {
+                    print("❌ Failed to delete music: \(error)")
+                }
+
+                tableView.deleteRows(at: [indexPath], with: .automatic)
+
+            } else {
+                let itemToDelete = self.data[indexPath.row]
+
+                // 1. Update the property
+                itemToDelete.isFavourite = false
+
+                // 2. Remove from data source
+                self.data.remove(at: indexPath.row)
+
+                // 3. Save changes
+                do {
+                    try self.container.mainContext.save()
+                } catch {
+                    print("❌ Failed to save context: \(error)")
+                }
+
+                // 4. Delete from table view
+                tableView.deleteRows(at: [indexPath], with: .automatic)
+
+            }
         }
     }
+
     
 //    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
 //        let musicData = data[indexPath.row]

@@ -179,7 +179,20 @@ class TabbarVC: UIViewController {
                 print("❌ Failed to save to SwiftData: \(error)")
             }
         } else if self.selectedTab == .playlist {
-            
+            self.showPlaylistInput()
+//            
+//            let allAudioVC = AllAudioVC.fetchInstance()
+//            
+//            if let sheet = allAudioVC.sheetPresentationController {
+//                sheet.prefersGrabberVisible = false
+//                sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+//                sheet.prefersEdgeAttachedInCompactHeight = true
+//                sheet.detents = [.large()] // Full height to avoid default scroll-to-dismiss
+//            }
+//
+//            allAudioVC.isModalInPresentation = true
+//            
+//            self.present(allAudioVC, animated: true)
         }
     }
     
@@ -409,6 +422,10 @@ class TabbarVC: UIViewController {
             
             if let homeVC = self.currentChildVC as? HomeVC {
                 homeVC.filter(with: "")
+            }
+            
+            if let playlistVC = self.currentChildVC as? PlaylistVC {
+                playlistVC.filter(with: "")
             }
         })
         
@@ -1217,6 +1234,43 @@ class TabbarVC: UIViewController {
         }
     }
     
+    func showPlaylistInput() {
+        let alert = UIAlertController(title: "New Playlist", message: "Enter playlist name", preferredStyle: .alert)
+            
+            alert.addTextField { $0.placeholder = "Playlist name" }
+            
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            
+            alert.addAction(UIAlertAction(title: "Create", style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                guard let name = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return }
+                
+                let allAudioVC = AllAudioVC.fetchInstance()
+                
+                allAudioVC.isAddNewData = true
+                allAudioVC.playlistName = name
+                
+                if let sheet = allAudioVC.sheetPresentationController {
+                    sheet.prefersGrabberVisible = false
+                    sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+                    sheet.prefersEdgeAttachedInCompactHeight = true
+                    sheet.detents = [.large()] // Full height to avoid default scroll-to-dismiss
+                }
+
+                allAudioVC.isModalInPresentation = true
+                
+                allAudioVC.onDismiss = {
+                    if let playlistVC = self.currentChildVC as? PlaylistVC, self.selectedTab == .playlist {
+                        playlistVC.reloadData()
+                    }
+                }
+                
+                self.present(allAudioVC, animated: true)
+            })
+            
+            self.present(alert, animated: true)
+    }
+    
     class func fetchInstance() -> Self {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         return storyboard.instantiateViewController(withIdentifier: "\(Self.self)") as! Self
@@ -1240,6 +1294,10 @@ extension TabbarVC: UISearchBarDelegate {
         // Make sure HomeVC is the active tab
         if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
             homeVC.filter(with: query)
+        }
+        
+        if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+            playlistVC.filter(with: query)
         }
     }
     

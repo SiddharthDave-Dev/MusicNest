@@ -56,10 +56,10 @@ class HomeTVC: UITableViewCell {
     
     func setPlayingState(isPlaying: Bool) {
         if isPlaying {
-            self.musicImage.borderColor = .systemGreen
-            self.musicTitleLabel.textColor = .systemGreen
-            self.dateLabel.textColor = .systemGreen
-            self.musicArtistLabel.textColor = .systemGreen
+            self.musicImage.borderColor = .systemPink
+            self.musicTitleLabel.textColor = .systemPink
+            self.dateLabel.textColor = .systemPink
+            self.musicArtistLabel.textColor = .systemPink
             
             self.musicImage.borderWidth = 2
         } else {

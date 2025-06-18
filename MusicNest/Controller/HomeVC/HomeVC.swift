@@ -90,9 +90,7 @@ class HomeVC: UIViewController {
         self.sortView.cornerRadius = 10
         self.sortView.backgroundColor = .systemGray.withAlphaComponent(0.5)
         
-        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 110))
-        footerView.backgroundColor = .clear
-        tableView.tableFooterView = footerView
+       
     }
     
     private func registerTableView() {
@@ -104,6 +102,9 @@ class HomeVC: UIViewController {
         tableView.sectionIndexBackgroundColor = .clear
         tableView.sectionIndexTrackingBackgroundColor = .clear
         
+        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 110))
+        footerView.backgroundColor = .clear
+        tableView.tableFooterView = footerView
     }
     
     //    func fetchMusic() -> [MusicModel] {

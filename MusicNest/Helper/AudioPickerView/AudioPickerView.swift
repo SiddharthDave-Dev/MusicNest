@@ -128,7 +128,10 @@ class AudioPickerView: UIView, UIDocumentPickerDelegate {
         }
         
         // Save to disk
-        let audioFileName = "audio-\(UUID().uuidString).m4a"
+//        let audioFileName = "audio-\(UUID().uuidString).m4a"
+        let originalExtension = url.pathExtension.isEmpty ? "m4a" : url.pathExtension
+        let audioFileName = "audio-\(UUID().uuidString).\(originalExtension)"
+
         guard let savedFileName = saveToDocumentsDirectory(audioData, fileName: audioFileName) else {
             return
         }

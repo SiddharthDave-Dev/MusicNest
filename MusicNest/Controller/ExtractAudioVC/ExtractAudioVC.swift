@@ -171,6 +171,7 @@ class ExtractAudioVC: UIViewController {
     }
     
     func fetchYouTubeStream(url urlString: String) async {
+        self.ripAudioButton.isEnabled = false
         guard let youtubeURL = URL(string: urlString) else {
             print("❌ Invalid YouTube URL")
             return
@@ -491,6 +492,7 @@ extension ExtractAudioVC: URLSessionDownloadDelegate {
             try fileManager.copyItem(at: location, to: destinationURL)
 
             DispatchQueue.main.async {
+                self.ripAudioButton.isEnabled = true
                 self.hideLoader()
                 
                 

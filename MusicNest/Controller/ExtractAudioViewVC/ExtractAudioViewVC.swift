@@ -13,6 +13,12 @@ import AVFoundation
 
 class ExtractAudioViewVC: UIViewController {
 
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    
     @IBOutlet weak var downloadAudioView: UIView!
     @IBOutlet weak var saveAudioView: UIView!
     
@@ -51,6 +57,8 @@ class ExtractAudioViewVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        NotificationCenter.default.post(name: .stopAllAudio, object: nil)
+        
         self.setUpUI()
     }
     

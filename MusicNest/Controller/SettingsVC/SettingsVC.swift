@@ -20,6 +20,8 @@ class SettingsVC: UIViewController {
     var viewController: UIViewController!
     var musicView: UIView!
     
+    var currentlyPlayingID: UUID?
+    
     var settingsData: [SettingsModel] = [
         SettingsModel(id: 1, title: "Your Favorite Music"),
         SettingsModel(id: 2, title: "Privacy Policy"),
@@ -135,6 +137,8 @@ extension SettingsVC: UITableViewDelegate, UITableViewDataSource {
             favoriteVC.modalPresentationStyle = .overFullScreen
             favoriteVC.modalTransitionStyle = .crossDissolve
 
+            favoriteVC.currentlyPlayingID = self.currentlyPlayingID
+            
             favoriteVC.delegate = self
 
             // Ensure viewController and musicView are available

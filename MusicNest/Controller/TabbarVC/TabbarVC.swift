@@ -96,8 +96,9 @@ class TabbarVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.view.bringSubviewToFront(self.musicView)
-        
+//        self.view.bringSubviewToFront(self.musicView)
+        NotificationCenter.default.addObserver(self, selector: #selector(stopAudioIfPlaying), name: .stopAllAudio, object: nil)
+
         self.setUI()
         self.setUpSearchBar()
         self.setupTapToDismissKeyboard()
@@ -122,6 +123,16 @@ class TabbarVC: UIViewController {
     override var canBecomeFirstResponder: Bool {
         return true
     }
+    
+    @objc private func stopAudioIfPlaying() {
+        if let player = self.audioPlayer, player.isPlaying {
+            player.pause()
+            self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+            self.expandedViewMusicPlayButton.setImage(UIImage(named: "play"), for: .normal)
+            print("🔇 Audio stopped due to StopAllAudio notification")
+        }
+    }
+
     
     @objc private func handleSwipeDown(_ gesture: UISwipeGestureRecognizer) {
         if self.isExpanded {
@@ -291,7 +302,18 @@ class TabbarVC: UIViewController {
     @IBAction func didTappedSmallViewMusicCancelButton(_ sender: Any) {
         self.audioPlayer?.pause()
 //        self.musicView.isHidden = true
-        self.homeVCReference?.currentlyPlayingID = nil
+//        self.homeVCReference?.currentlyPlayingID = nil
+        if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
+            homeVC.currentlyPlayingID = nil
+        }
+        
+        if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+            playlistVC.currentlyPlayingID = nil
+        }
+        
+        if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
+            settingsVC.currentlyPlayingID = nil
+        }
         setMusicViewHidden(true)
     }
     
@@ -685,6 +707,15 @@ class TabbarVC: UIViewController {
             playlistVC.viewController = self
             playlistVC.tabbarView = self.tabbarView
             playlistVC.songDelegate = self
+            
+            
+            if (audioPlayer?.isPlaying ?? false) {
+                if self.isPlaylist {
+                    playlistVC.currentlyPlayingID = self.playlistMusicData[self.currentMusicIndex].id
+                } else {
+                    playlistVC.currentlyPlayingID = self.musicData[self.currentMusicIndex].id
+                }
+            }
         }
         
         if let settingsVC = vc as? SettingsVC {
@@ -692,6 +723,14 @@ class TabbarVC: UIViewController {
             settingsVC.viewController = self
             settingsVC.delegate = self
             settingsVC.songDelegate = self
+            
+            if (audioPlayer?.isPlaying ?? false) {
+                if self.isPlaylist {
+                    settingsVC.currentlyPlayingID = self.playlistMusicData[self.currentMusicIndex].id
+                } else {
+                    settingsVC.currentlyPlayingID = self.musicData[self.currentMusicIndex].id
+                }
+            }
         }
         
         let newVC = vc
@@ -974,6 +1013,14 @@ class TabbarVC: UIViewController {
         self.audioPlayer?.stop()
 
         do {
+            print(url)
+            
+            if FileManager.default.fileExists(atPath: url.path) {
+                print("✅ File exists at path: \(url.path)")
+            } else {
+                print("❌ File does not exist at path: \(url.path)")
+            }
+
             self.audioPlayer = try AVAudioPlayer(contentsOf: url)
             self.audioPlayer?.prepareToPlay()
             self.audioPlayer?.play()
@@ -1183,7 +1230,21 @@ class TabbarVC: UIViewController {
             self.updateNowPlayingPlaybackState(isPlaying: true)
             self.updateNavigationButtons()
             
-            self.homeVCReference?.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
+            
+            if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
+                homeVC.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
+            }
+            
+            if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+                playlistVC.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
+            }
+            
+            if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
+                settingsVC.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
+            }
+            
+//            self.homeVCReference?.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
+            
         } else {
             guard self.currentMusicIndex < self.musicData.count - 1 else {
                 self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
@@ -1197,8 +1258,22 @@ class TabbarVC: UIViewController {
             self.updateNowPlayingPlaybackState(isPlaying: true)
             self.updateNavigationButtons()
             
-            self.homeVCReference?.currentlyPlayingID = self.musicData[currentMusicIndex].id
+//            self.homeVCReference?.currentlyPlayingID = self.musicData[currentMusicIndex].id
+            
+            if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
+                homeVC.currentlyPlayingID = self.musicData[currentMusicIndex].id
+            }
+            
+            if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+                playlistVC.currentlyPlayingID = self.musicData[currentMusicIndex].id
+            }
+            
+            if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
+                settingsVC.currentlyPlayingID = self.musicData[currentMusicIndex].id
+            }
         }
+        
+        
         
     }
     
@@ -1216,7 +1291,21 @@ class TabbarVC: UIViewController {
             self.updateNowPlayingPlaybackState(isPlaying: true)
             self.updateNavigationButtons()
             
-            self.homeVCReference?.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
+//            self.homeVCReference?.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
+            
+            
+            if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
+                homeVC.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
+            }
+            
+            if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+                playlistVC.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
+            }
+            
+            if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
+                settingsVC.currentlyPlayingID = self.playlistMusicData[currentMusicIndex].id
+            }
+            
         } else {
             guard self.currentMusicIndex > 0 else {
                 self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
@@ -1230,8 +1319,22 @@ class TabbarVC: UIViewController {
             self.updateNowPlayingPlaybackState(isPlaying: true)
             self.updateNavigationButtons()
             
-            self.homeVCReference?.currentlyPlayingID = self.musicData[currentMusicIndex].id
+//            self.homeVCReference?.currentlyPlayingID = self.musicData[currentMusicIndex].id
+            
+            if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
+                homeVC.currentlyPlayingID = self.musicData[currentMusicIndex].id
+            }
+            
+            if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+                playlistVC.currentlyPlayingID = self.musicData[currentMusicIndex].id
+            }
+            
+            if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
+                settingsVC.currentlyPlayingID = self.musicData[currentMusicIndex].id
+            }
         }
+        
+        
     }
     
     func showPlaylistInput() {
@@ -1368,4 +1471,5 @@ extension TabbarVC: AVAudioPlayerDelegate  {
 
 extension Notification.Name {
     static let musicViewVisibilityChanged = Notification.Name("musicViewVisibilityChanged")
+    static let stopAllAudio = Notification.Name("StopAllAudio")
 }

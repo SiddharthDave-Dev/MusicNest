@@ -21,6 +21,14 @@ class FavoriteVC: UIViewController {
     
     var viewController: UIViewController!
     
+    var currentlyPlayingID: UUID? {
+        didSet {
+            delay(0) {
+                self.tableView.reloadData()
+            }
+        }
+    }
+    
     var data: [MusicModel] = [] {
         didSet {
             delay(0) {
@@ -131,6 +139,10 @@ class FavoriteVC: UIViewController {
         self.tableView.registerTableViewCell(withNibName: "HomeTVC", identifier: "HomeTVC")
         self.tableView.delegate = self
         self.tableView.dataSource = self
+        
+        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 110))
+        footerView.backgroundColor = .clear
+        tableView.tableFooterView = footerView
     }
 
     
@@ -229,8 +241,12 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
         
         if self.isPlaylist {
             cell.configureUI(self.playlistMusicData[indexPath.row])
+            let isPlaying = (self.playlistMusicData[indexPath.row].id == currentlyPlayingID)
+            cell.setPlayingState(isPlaying: isPlaying)
         } else {
             cell.configureUI(self.data[indexPath.row])
+            let isPlaying = (self.data[indexPath.row].id == currentlyPlayingID)
+            cell.setPlayingState(isPlaying: isPlaying)
         }
         
         return cell
@@ -249,6 +265,8 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
             // Find the index in originalData
             if let originalIndex = self.playlistMusicData.firstIndex(where: { $0.id == selectedMusic.id }) {
                 print("Selected index in originalData: \(originalIndex)")
+                self.currentlyPlayingID = selectedMusic.id
+                self.tableView.reloadData()
                 self.delegate?.didSelectMusic(self.playlistMusicData, currentMusicIndex: originalIndex)
             }
         } else {
@@ -258,6 +276,8 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
             // Find the index in originalData
             if let originalIndex = self.data.firstIndex(where: { $0.id == selectedMusic.id }) {
                 print("Selected index in originalData: \(originalIndex)")
+                self.currentlyPlayingID = selectedMusic.id
+                self.tableView.reloadData()
                 self.delegate?.didSelectMusic(self.data, currentMusicIndex: originalIndex)
             }
         }

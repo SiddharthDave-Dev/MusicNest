@@ -234,6 +234,10 @@ class AllAudioVC: UIViewController {
         tableView.sectionIndexTrackingBackgroundColor = .clear
         
         tableView.allowsMultipleSelection = true
+        
+        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 120))
+        footerView.backgroundColor = .clear
+        tableView.tableFooterView = footerView
     }
     
     func setUpSearchBar() {

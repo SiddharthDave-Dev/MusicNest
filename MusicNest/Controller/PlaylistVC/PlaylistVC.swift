@@ -16,6 +16,18 @@ class PlaylistVC: UIViewController {
     var container: ModelContainer!
     weak var songDelegate: HomeVCDelegate?
     
+    var currentlyPlayingID: UUID? {
+        didSet {
+            print("🎯 New currentlyPlayingID received: \(String(describing: currentlyPlayingID))")
+//            updateUIForCurrentlyPlayingID()
+            delay(0) {
+                self.favoriteVC?.currentlyPlayingID = self.currentlyPlayingID
+            }
+        }
+    }
+    
+    var favoriteVC: FavoriteVC?
+
     
     private var originalPlaylistData: [PlaylistModel] = []
     
@@ -126,7 +138,10 @@ extension PlaylistVC: UITableViewDelegate, UITableViewDataSource {
         let favoriteVC = FavoriteVC.fetchInstance()
         favoriteVC.modalPresentationStyle = .overFullScreen
         favoriteVC.modalTransitionStyle = .crossDissolve
-
+        self.favoriteVC = favoriteVC
+        
+        favoriteVC.currentlyPlayingID = self.currentlyPlayingID
+        
         favoriteVC.isPlaylist = true
         favoriteVC.playlistData = data
         favoriteVC.playlistMusicData = data.musicData.sorted(by: { date1, date2 in

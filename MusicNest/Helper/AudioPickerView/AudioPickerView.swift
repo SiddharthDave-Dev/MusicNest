@@ -130,7 +130,10 @@ class AudioPickerView: UIView, UIDocumentPickerDelegate {
         // Save to disk
 //        let audioFileName = "audio-\(UUID().uuidString).m4a"
         let originalExtension = url.pathExtension.isEmpty ? "m4a" : url.pathExtension
-        let audioFileName = "audio-\(UUID().uuidString).\(originalExtension)"
+//        let audioFileName = "\(title).\(originalExtension)"
+        let safeTitle = title.replacingOccurrences(of: "/", with: "-")
+        let audioFileName = "\(safeTitle).\(originalExtension)"
+
 
         guard let savedFileName = saveToDocumentsDirectory(audioData, fileName: audioFileName) else {
             return
@@ -172,9 +175,23 @@ class AudioPickerView: UIView, UIDocumentPickerDelegate {
         return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 
+//    func saveToDocumentsDirectory(_ data: Data, fileName: String) -> String? {
+//        let fileURL = getDocumentsDirectory().appendingPathComponent(fileName)
+//        do {
+//            try data.write(to: fileURL)
+//            return fileName
+//        } catch {
+//            print("❌ Failed to write file: \(error)")
+//            return nil
+//        }
+//    }
+    
     func saveToDocumentsDirectory(_ data: Data, fileName: String) -> String? {
         let fileURL = getDocumentsDirectory().appendingPathComponent(fileName)
+        
+        let folderURL = fileURL.deletingLastPathComponent()
         do {
+            try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true, attributes: nil)
             try data.write(to: fileURL)
             return fileName
         } catch {
@@ -182,6 +199,7 @@ class AudioPickerView: UIView, UIDocumentPickerDelegate {
             return nil
         }
     }
+
 
     func getAudioURL(for music: MusicModel) -> URL {
         return getDocumentsDirectory().appendingPathComponent(music.fileName)

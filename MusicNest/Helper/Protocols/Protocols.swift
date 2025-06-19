@@ -25,9 +25,17 @@ protocol HomeVCDelegate: AnyObject {
     func didSelectMusic(_ musicData: [MusicModel], currentMusicIndex: Int)
     func didSelectMusic(_ musicData: [PlaylistMusicModel], currentMusicIndex: Int)
     func didSelectMusic(_ musicData: [MusicModel])
+    
+    func addNextSong(_ musicData: MusicModel)
+    func addNextSong(_ musicData: PlaylistMusicModel)
 }
 
 protocol FavoriteVCDelegate: AnyObject {
     func didSelectMusic(_ musicData: [PlaylistMusicModel], currentMusicIndex: Int)
     func didSelectMusic(_ musicData: [MusicModel], currentMusicIndex: Int)
+    
+    func addNextSong(_ musicData: MusicModel)
+    func addNextSong(_ musicData: PlaylistMusicModel)
 }
+
+

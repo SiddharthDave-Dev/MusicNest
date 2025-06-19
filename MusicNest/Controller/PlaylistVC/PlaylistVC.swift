@@ -195,6 +195,14 @@ extension PlaylistVC: UITableViewDelegate, UITableViewDataSource {
 }
 
 extension PlaylistVC: FavoriteVCDelegate {
+    func addNextSong(_ musicData: MusicModel) {
+        self.songDelegate?.addNextSong(musicData)
+    }
+    
+    func addNextSong(_ musicData: PlaylistMusicModel) {
+        self.songDelegate?.addNextSong(musicData)
+    }
+    
     func didSelectMusic(_ musicData: [PlaylistMusicModel], currentMusicIndex: Int) {
         self.songDelegate?.didSelectMusic(musicData, currentMusicIndex: currentMusicIndex)
     }

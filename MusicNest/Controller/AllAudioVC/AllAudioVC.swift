@@ -47,7 +47,7 @@ class AllAudioVC: UIViewController {
     var selectedMusicIDs: Set<UUID> = []
 
     var selectedMusic: [MusicModel] {
-        return data.filter { selectedMusicIDs.contains($0.id) }
+        return self.originalData.filter { selectedMusicIDs.contains($0.id) }
     }
 
     var playlistData: PlaylistModel?

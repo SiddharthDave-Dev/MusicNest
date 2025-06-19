@@ -217,8 +217,22 @@ class FavoriteVC: UIViewController {
         }
     }
     
+    func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        self.present(alert, animated: true)
+    }
+    
     func getDocumentsDirectory() -> URL {
         return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
+    
+    func getAudioURL(for music: MusicModel) -> URL {
+        return getDocumentsDirectory().appendingPathComponent(music.fileName)
+    }
+    
+    func getAudioURL(for music: PlaylistMusicModel) -> URL {
+        return getDocumentsDirectory().appendingPathComponent(music.fileName)
     }
     
     class func fetchInstance() -> Self {
@@ -240,13 +254,130 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
         cell.selectionStyle = .none
         
         if self.isPlaylist {
-            cell.configureUI(self.playlistMusicData[indexPath.row])
-            let isPlaying = (self.playlistMusicData[indexPath.row].id == currentlyPlayingID)
+            let playlistMusicData = self.playlistMusicData
+            let music = playlistMusicData[indexPath.row]
+            
+            cell.configureUI(music)
+            let isPlaying = (music.id == currentlyPlayingID)
             cell.setPlayingState(isPlaying: isPlaying)
+            
+            cell.setupSortMenu(showAll: false)
+            
+            cell.onAudioOptionSelected = { option in
+                switch option {
+                case .playNext:
+                    self.delegate?.addNextSong(music)
+                case .favorite:
+                    if music.isFavourite {
+                        self.showAlert(title: "Already a Favorite", message: "\(music.title) is already marked as favorite.")
+                    } else {
+                        music.isFavourite = true
+                        self.showAlert(title: "Added to Favorites", message: "\(music.title) has been added to favorites.")
+                        delay(0) {
+                            self.tableView.reloadData()
+                        }
+                    }
+                case .playlist:
+                    break
+                case .share:
+                    let audioURL = self.getAudioURL(for: music)
+                    let activityVC = UIActivityViewController(activityItems: [audioURL], applicationActivities: nil)
+                    
+                    // For iPad support
+                    if let popoverController = activityVC.popoverPresentationController {
+                        if let cell = tableView.cellForRow(at: indexPath) as? HomeTVC {
+                            popoverController.sourceView = cell.infoButton
+                            popoverController.sourceRect = cell.infoButton.bounds
+                        } else {
+                            popoverController.sourceView = self.view
+                            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                        }
+                    }
+                    
+                    self.present(activityVC, animated: true)
+                case .delete:
+                    let itemToDelete = self.playlistMusicData[indexPath.row]
+
+                    // Remove from data source
+                    self.playlistMusicData.remove(at: indexPath.row)
+
+                    // Remove from playlist model and persist
+                    self.playlistData?.musicData.removeAll(where: { $0.id == itemToDelete.id })
+
+                    do {
+                        try self.container.mainContext.save()
+                        print("✅ Deleted music from playlist")
+                    } catch {
+                        print("❌ Failed to delete music: \(error)")
+                    }
+
+                    tableView.deleteRows(at: [indexPath], with: .automatic)
+                }
+            }
+            
         } else {
-            cell.configureUI(self.data[indexPath.row])
-            let isPlaying = (self.data[indexPath.row].id == currentlyPlayingID)
+            
+            let musicData = self.data
+            let music = musicData[indexPath.row]
+            
+            cell.configureUI(music)
+            let isPlaying = (music.id == currentlyPlayingID)
             cell.setPlayingState(isPlaying: isPlaying)
+            
+            cell.setupSortMenu(showAll: false)
+            
+            cell.onAudioOptionSelected = { option in
+                switch option {
+                case .playNext:
+                    self.delegate?.addNextSong(music)
+                case .favorite:
+                    if music.isFavourite {
+                        self.showAlert(title: "Already a Favorite", message: "\(music.title) is already marked as favorite.")
+                    } else {
+                        music.isFavourite = true
+                        self.showAlert(title: "Added to Favorites", message: "\(music.title) has been added to favorites.")
+                        delay(0) {
+                            self.tableView.reloadData()
+                        }
+                    }
+                case .playlist:
+                   break
+                case .share:
+                    let audioURL = self.getAudioURL(for: music)
+                    let activityVC = UIActivityViewController(activityItems: [audioURL], applicationActivities: nil)
+                    
+                    // For iPad support
+                    if let popoverController = activityVC.popoverPresentationController {
+                        if let cell = tableView.cellForRow(at: indexPath) as? HomeTVC {
+                            popoverController.sourceView = cell.infoButton
+                            popoverController.sourceRect = cell.infoButton.bounds
+                        } else {
+                            popoverController.sourceView = self.view
+                            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                        }
+                    }
+                    
+                    self.present(activityVC, animated: true)
+                case .delete:
+                    let itemToDelete = self.data[indexPath.row]
+
+                    // 1. Update the property
+                    itemToDelete.isFavourite = false
+
+                    // 2. Remove from data source
+                    self.data.remove(at: indexPath.row)
+
+                    // 3. Save changes
+                    do {
+                        try self.container.mainContext.save()
+                    } catch {
+                        print("❌ Failed to save context: \(error)")
+                    }
+
+                    // 4. Delete from table view
+                    tableView.deleteRows(at: [indexPath], with: .automatic)
+                }
+            }
         }
         
         return cell

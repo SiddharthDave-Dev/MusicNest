@@ -1430,6 +1430,7 @@ extension TabbarVC: SettingsVCDelegate {
 }
 
 extension TabbarVC: HomeVCDelegate {
+    
     func didSelectMusic(_ musicData: [PlaylistMusicModel], currentMusicIndex: Int) {
         self.showMusicView(musicData[currentMusicIndex])
         self.currentMusicIndex = 0
@@ -1439,6 +1440,18 @@ extension TabbarVC: HomeVCDelegate {
         self.currentMusicIndex = currentMusicIndex
         
         self.updateNavigationButtons()
+        
+        if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
+            homeVC.currentlyPlayingID = musicData[currentMusicIndex].id
+        }
+        
+        if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+            playlistVC.currentlyPlayingID = musicData[currentMusicIndex].id
+        }
+        
+        if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
+            settingsVC.currentlyPlayingID = musicData[currentMusicIndex].id
+        }
     }
     
     func didSelectMusic(_ musicData: [MusicModel], currentMusicIndex: Int) {
@@ -1449,12 +1462,75 @@ extension TabbarVC: HomeVCDelegate {
         self.currentMusicIndex = currentMusicIndex
         self.playlistMusicData = []
         self.updateNavigationButtons()
+        
+        if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
+            homeVC.currentlyPlayingID = musicData[currentMusicIndex].id
+        }
+        
+        if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+            playlistVC.currentlyPlayingID = musicData[currentMusicIndex].id
+        }
+        
+        if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
+            settingsVC.currentlyPlayingID = musicData[currentMusicIndex].id
+        }
     }
     
     func didSelectMusic(_ newMusicList: [MusicModel]) {
         
     }
     
+    func addNextSong(_ music: MusicModel) {
+        let insertIndex = currentMusicIndex + 1
+        
+        if self.isPlaylist {
+            if insertIndex <= self.playlistMusicData.count {
+                let music = PlaylistMusicModel(id: music.id, title: music.title, imageData: music.imageData, artist: music.artist, date: music.date, isFavourite: music.isFavourite, fileName: music.fileName, isExtractedAudio: music.isExtractedAudio)
+                self.playlistMusicData.insert(music, at: insertIndex)
+                print("✅ Queued next song: \(music.title) at index \(insertIndex)")
+            } else {
+                // Fallback: append to the end
+                let music = PlaylistMusicModel(id: music.id, title: music.title, imageData: music.imageData, artist: music.artist, date: music.date, isFavourite: music.isFavourite, fileName: music.fileName, isExtractedAudio: music.isExtractedAudio)
+                self.playlistMusicData.append(music)
+                print("ℹ️ Appended song at end (queue was shorter than expected).")
+            }
+        } else {
+            if insertIndex <= musicData.count {
+                musicData.insert(music, at: insertIndex)
+                print("✅ Queued next song: \(music.title) at index \(insertIndex)")
+            } else {
+                // Fallback: append to the end
+                musicData.append(music)
+                print("ℹ️ Appended song at end (queue was shorter than expected).")
+            }
+        }
+    }
+
+    func addNextSong(_ musicData: PlaylistMusicModel) {
+        let insertIndex = currentMusicIndex + 1
+        
+        if self.isPlaylist {
+            if insertIndex <= playlistMusicData.count {
+                playlistMusicData.insert(musicData, at: insertIndex)
+                print("✅ Queued next song: \(musicData.title) at index \(insertIndex)")
+            } else {
+                // Fallback: append to the end
+                playlistMusicData.append(musicData)
+                print("ℹ️ Appended song at end (queue was shorter than expected).")
+            }
+        } else {
+           if insertIndex <= self.musicData.count {
+                let music = MusicModel(title: musicData.title, imageData: musicData.imageData, artist: musicData.artist, date: musicData.date, isFavourite: musicData.isFavourite, fileName: musicData.fileName, isExtractedAudio: musicData.isExtractedAudio)
+                self.musicData.insert(music, at: insertIndex)
+                print("✅ Queued next song: \(music.title) at index \(insertIndex)")
+            } else {
+                // Fallback: append to the end
+                let music = MusicModel(title: musicData.title, imageData: musicData.imageData, artist: musicData.artist, date: musicData.date, isFavourite: musicData.isFavourite, fileName: musicData.fileName, isExtractedAudio: musicData.isExtractedAudio)
+                self.musicData.append(music)
+                print("ℹ️ Appended song at end (queue was shorter than expected).")
+            }
+        }
+    }
 }
 
 

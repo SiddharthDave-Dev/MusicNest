@@ -369,6 +369,10 @@ class HomeVC: UIViewController {
 //        }
 //    }
 
+    func getAudioURL(for music: MusicModel) -> URL {
+        return getDocumentsDirectory().appendingPathComponent(music.fileName)
+    }
+    
     class func fetchInstance() -> Self {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         return storyboard.instantiateViewController(withIdentifier: "\(Self.self)") as! Self
@@ -493,6 +497,90 @@ extension HomeVC: UITableViewDelegate, UITableViewDataSource {
         
         let isPlaying = (music.id == currentlyPlayingID)
         cell.setPlayingState(isPlaying: isPlaying)
+        
+        cell.onAudioOptionSelected = { option in
+            switch option {
+            case .playNext:
+                self.delegate?.addNextSong(music)
+            case .favorite:
+                if music.isFavourite {
+                    self.showAlert(title: "Already a Favorite", message: "\(music.title) is already marked as favorite.")
+                } else {
+                    music.isFavourite = true
+                    self.showAlert(title: "Added to Favorites", message: "\(music.title) has been added to favorites.")
+                    delay(0) {
+                        self.tableView.reloadData()
+                    }
+                }
+            case .playlist:
+                let addPlaylistVC = AddPlaylistVC.fetchInstance()
+                addPlaylistVC.musicData = music
+                
+                if let sheet = addPlaylistVC.sheetPresentationController {
+                    sheet.detents = [.medium(), .large()]
+                    sheet.prefersGrabberVisible = true
+                }
+                
+                self.present(addPlaylistVC, animated: true)
+            case .share:
+                let audioURL = self.getAudioURL(for: music)
+                let activityVC = UIActivityViewController(activityItems: [audioURL], applicationActivities: nil)
+                
+                // For iPad support
+                if let popoverController = activityVC.popoverPresentationController {
+                    if let cell = tableView.cellForRow(at: indexPath) as? HomeTVC {
+                        popoverController.sourceView = cell.infoButton
+                        popoverController.sourceRect = cell.infoButton.bounds
+                    } else {
+                        popoverController.sourceView = self.view
+                        popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                    }
+                }
+                
+                self.present(activityVC, animated: true)
+            case .delete:
+                if self.currentSort == .nameAsc || self.currentSort == .nameDesc {
+                    guard indexPath.section < self.sectionedData.count,
+                          indexPath.row < self.sectionedData[indexPath.section].items.count else {
+                        print("❌ Invalid indexPath during delete.")
+                        return
+                    }
+
+                    let musicToDelete = self.sectionedData[indexPath.section].items[indexPath.row]
+                    self.deleteFromSwiftData(musicToDelete)
+
+                    tableView.beginUpdates()
+
+                    self.sectionedData[indexPath.section].items.remove(at: indexPath.row)
+
+                    if self.sectionedData[indexPath.section].items.isEmpty {
+                        self.sectionedData.remove(at: indexPath.section)
+                        tableView.deleteSections(IndexSet(integer: indexPath.section), with: .automatic)
+                    } else {
+                        tableView.deleteRows(at: [indexPath], with: .automatic)
+                    }
+
+                    tableView.endUpdates()
+
+                } else {
+                    guard indexPath.row < self.data.count else {
+                        print("❌ Invalid indexPath during delete.")
+                        return
+                    }
+
+                    let musicToDelete = self.data[indexPath.row]
+                    self.deleteFromSwiftData(musicToDelete)
+
+                    tableView.beginUpdates()
+                    self.data.remove(at: indexPath.row)
+                    tableView.deleteRows(at: [indexPath], with: .automatic)
+                    tableView.endUpdates()
+                }
+                
+                self.originalData = self.fetchMusic()
+            }
+        }
+
         
         return cell
     }

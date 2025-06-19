@@ -107,7 +107,7 @@ class ExtractAudioVC: UIViewController {
             showAlert(title: "Missing URL", message: "Please paste a YouTube URL before continuing.")
             return
         }
-        
+        self.ripAudioButton.isEnabled = false
         Task {
             await self.fetchYouTubeStream(url: urlText)
         }
@@ -171,7 +171,7 @@ class ExtractAudioVC: UIViewController {
     }
     
     func fetchYouTubeStream(url urlString: String) async {
-        self.ripAudioButton.isEnabled = false
+        
         guard let youtubeURL = URL(string: urlString) else {
             print("❌ Invalid YouTube URL")
             return
@@ -585,3 +585,5 @@ func safeFileName(from title: String) -> String {
     let invalidCharacters = CharacterSet(charactersIn: "/\\?%*|\"<>:")
     return title.components(separatedBy: invalidCharacters).joined(separator: "_")
 }
+
+

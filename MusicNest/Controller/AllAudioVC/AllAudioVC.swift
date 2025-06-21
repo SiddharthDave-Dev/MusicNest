@@ -242,7 +242,7 @@ class AllAudioVC: UIViewController {
     
     func setUpSearchBar() {
         self.searchBar.delegate = self
-        self.searchBar.placeholder = "Search Username or UserID..."
+        self.searchBar.placeholder = "Search Music..."
 
         
         if let textField = searchBar.value(forKey: "searchField") as? UITextField {
@@ -254,7 +254,7 @@ class AllAudioVC: UIViewController {
             textField.borderWidth = 1
             
             textField.attributedPlaceholder = NSAttributedString(
-                string: "Search Username or UserID",
+                string: "Search Music...",
                 attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.8)]
             )
             

@@ -468,9 +468,9 @@ class TabbarVC: UIViewController {
         
     }
     
-    func setUpSearchBar() {
+    func setUpSearchBar(isPlaylist: Bool = false) {
         self.searchBar.delegate = self
-        self.searchBar.placeholder = "Search Username or UserID..."
+        self.searchBar.placeholder = "Search Music..."
         self.searchImage.tintColor = .white.withAlphaComponent(0.8)
         self.searchButton.tintColor = .clear // Prevents button color overlay
         self.searchButton.setTitle("", for: .normal)
@@ -484,10 +484,17 @@ class TabbarVC: UIViewController {
             textField.borderColor = .white.withAlphaComponent(0.8)
             textField.borderWidth = 1
             
-            textField.attributedPlaceholder = NSAttributedString(
-                string: "Search Username or UserID",
-                attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.8)]
-            )
+            if isPlaylist {
+                textField.attributedPlaceholder = NSAttributedString(
+                    string: "Search Playlist",
+                    attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.8)]
+                )
+            } else {
+                textField.attributedPlaceholder = NSAttributedString(
+                    string: "Search Music...",
+                    attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.8)]
+                )
+            }
             
             if let leftIconView = textField.leftView as? UIImageView {
                 leftIconView.image = leftIconView.image?.withRenderingMode(.alwaysTemplate)
@@ -553,6 +560,8 @@ class TabbarVC: UIViewController {
         self.settingsImage.tintColor = .white
         self.ripYTImage.tintColor = .white
         
+        self.setUpSearchBar()
+        
         switch tab {
         case .home:
             self.titleLabel.text = "Your Music Nest"
@@ -606,6 +615,8 @@ class TabbarVC: UIViewController {
             self.titleLabel.text = "Playlists"
             self.showStep(vc: PlaylistVC.fetchInstance())
             self.clearButtonTapped()
+            
+            self.setUpSearchBar(isPlaylist: true)
             
             self.addButton.alpha = 0
             self.addButton.isHidden = false
@@ -1247,6 +1258,24 @@ class TabbarVC: UIViewController {
             
         } else {
             guard self.currentMusicIndex < self.musicData.count - 1 else {
+                
+                self.currentMusicIndex = 0
+                let nextMusic = self.playlistMusicData[currentMusicIndex]
+                self.showMusicView(nextMusic)
+                self.updateNowPlayingInfo(music: nextMusic)
+                self.updateNowPlayingPlaybackState(isPlaying: true)
+                self.updateNavigationButtons()
+                
+                if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
+                    homeVC.currentlyPlayingID = nextMusic.id
+                }
+                if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+                    playlistVC.currentlyPlayingID = nextMusic.id
+                }
+                if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
+                    settingsVC.currentlyPlayingID = nextMusic.id
+                }
+                
                 self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
                 self.expandedViewMusicPlayButton.setImage(UIImage(named: "play"), for: .normal)
                 return
@@ -1280,6 +1309,24 @@ class TabbarVC: UIViewController {
     private func playPreviousTrack() {
         if self.isPlaylist {
             guard self.currentMusicIndex > 0 else {
+                
+                self.currentMusicIndex = 0
+                let nextMusic = self.musicData[currentMusicIndex]
+                self.showMusicView(nextMusic)
+                self.updateNowPlayingInfo(music: nextMusic)
+                self.updateNowPlayingPlaybackState(isPlaying: true)
+                self.updateNavigationButtons()
+                
+                if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
+                    homeVC.currentlyPlayingID = nextMusic.id
+                }
+                if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+                    playlistVC.currentlyPlayingID = nextMusic.id
+                }
+                if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
+                    settingsVC.currentlyPlayingID = nextMusic.id
+                }
+                
                 self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
                 self.expandedViewMusicPlayButton.setImage(UIImage(named: "play"), for: .normal)
                 return

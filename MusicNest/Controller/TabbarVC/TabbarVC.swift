@@ -1230,6 +1230,24 @@ class TabbarVC: UIViewController {
     private func playNextTrack() {
         if self.isPlaylist {
             guard self.currentMusicIndex < self.playlistMusicData.count - 1 else {
+                
+                self.currentMusicIndex = 0
+                let nextMusic = self.playlistMusicData[currentMusicIndex]
+                self.showMusicView(nextMusic)
+                self.updateNowPlayingInfo(music: nextMusic)
+                self.updateNowPlayingPlaybackState(isPlaying: true)
+                self.updateNavigationButtons()
+                
+                if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
+                    homeVC.currentlyPlayingID = nextMusic.id
+                }
+                if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
+                    playlistVC.currentlyPlayingID = nextMusic.id
+                }
+                if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
+                    settingsVC.currentlyPlayingID = nextMusic.id
+                }
+                
                 self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
                 self.expandedViewMusicPlayButton.setImage(UIImage(named: "play"), for: .normal)
                 return
@@ -1260,7 +1278,7 @@ class TabbarVC: UIViewController {
             guard self.currentMusicIndex < self.musicData.count - 1 else {
                 
                 self.currentMusicIndex = 0
-                let nextMusic = self.playlistMusicData[currentMusicIndex]
+                let nextMusic = self.musicData[currentMusicIndex]
                 self.showMusicView(nextMusic)
                 self.updateNowPlayingInfo(music: nextMusic)
                 self.updateNowPlayingPlaybackState(isPlaying: true)
@@ -1309,24 +1327,6 @@ class TabbarVC: UIViewController {
     private func playPreviousTrack() {
         if self.isPlaylist {
             guard self.currentMusicIndex > 0 else {
-                
-                self.currentMusicIndex = 0
-                let nextMusic = self.musicData[currentMusicIndex]
-                self.showMusicView(nextMusic)
-                self.updateNowPlayingInfo(music: nextMusic)
-                self.updateNowPlayingPlaybackState(isPlaying: true)
-                self.updateNavigationButtons()
-                
-                if let homeVC = self.currentChildVC as? HomeVC, selectedTab == .home {
-                    homeVC.currentlyPlayingID = nextMusic.id
-                }
-                if let playlistVC = self.currentChildVC as? PlaylistVC, selectedTab == .playlist {
-                    playlistVC.currentlyPlayingID = nextMusic.id
-                }
-                if let settingsVC = self.currentChildVC as? SettingsVC, selectedTab == .settings {
-                    settingsVC.currentlyPlayingID = nextMusic.id
-                }
-                
                 self.smallViewMusicPlayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
                 self.expandedViewMusicPlayButton.setImage(UIImage(named: "play"), for: .normal)
                 return

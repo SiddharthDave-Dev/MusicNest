@@ -17,6 +17,7 @@ enum TabType {
 
 class TabbarVC: UIViewController {
     
+    @IBOutlet weak var bgImage: UIImageView!
     @IBOutlet weak var tabbarView: UIView!
     @IBOutlet weak var expandedViewMusicNextButton: UIButton!
     @IBOutlet weak var expandedViewMusicPreviousButton: UIButton!
@@ -98,13 +99,14 @@ class TabbarVC: UIViewController {
 
 //        self.view.bringSubviewToFront(self.musicView)
         NotificationCenter.default.addObserver(self, selector: #selector(stopAudioIfPlaying), name: .stopAllAudio, object: nil)
-
+        self.musicView.isCircle = true
         self.setUI()
         self.setUpSearchBar()
         self.setupTapToDismissKeyboard()
         self.applyGlassEffect(to: self.tabbarLeftView)
         self.applyGlassEffect(to: self.searchView)
-        self.applyGlassEffect(to: self.musicView)
+        self.applyGlassEffect(to: self.bgImage)
+        
         self.updateTabSelection(to: .home)
     }
     
@@ -827,7 +829,7 @@ class TabbarVC: UIViewController {
             self.setMusicViewHidden(false)
             self.smallViewMusicImage.image = UIImage(data: musicData.imageData)
             self.smallViewMusicTitle.text = musicData.title
-            
+            self.bgImage.image = UIImage(data: musicData.imageData)
             self.expandedViewMusicImage.image = UIImage(data: musicData.imageData)
             self.expandedViewMusicTitle.text = musicData.title
             

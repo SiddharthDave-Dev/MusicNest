@@ -775,6 +775,9 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="IXc-HP-c4m">
                                 <rect key="frame" x="20" y="669" width="353" height="60"/>
                                 <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="fKm-jm-4Uf">
+                                        <rect key="frame" x="0.0" y="0.0" width="353" height="60"/>
+                                    </imageView>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Ogp-F4-AVI">
                                         <rect key="frame" x="0.0" y="0.0" width="353" height="60"/>
                                         <subviews>
@@ -957,10 +960,14 @@
                                 <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstItem="Ogp-F4-AVI" firstAttribute="top" secondItem="IXc-HP-c4m" secondAttribute="top" id="Ccf-Bq-Zpa"/>
+                                    <constraint firstAttribute="trailing" secondItem="fKm-jm-4Uf" secondAttribute="trailing" id="H7T-ld-NtG"/>
                                     <constraint firstAttribute="trailing" secondItem="Ogp-F4-AVI" secondAttribute="trailing" id="Kj6-Gy-Lhr"/>
                                     <constraint firstItem="Ogp-F4-AVI" firstAttribute="leading" secondItem="IXc-HP-c4m" secondAttribute="leading" id="LGD-DJ-p0Z"/>
+                                    <constraint firstAttribute="bottom" secondItem="fKm-jm-4Uf" secondAttribute="bottom" id="aAM-WY-TNS"/>
+                                    <constraint firstItem="fKm-jm-4Uf" firstAttribute="top" secondItem="IXc-HP-c4m" secondAttribute="top" id="bDn-tT-sP3"/>
                                     <constraint firstAttribute="width" secondItem="IXc-HP-c4m" secondAttribute="height" multiplier="353:60" priority="250" id="he7-ZU-jpA"/>
                                     <constraint firstAttribute="bottom" secondItem="Ogp-F4-AVI" secondAttribute="bottom" id="vwo-gE-f2k"/>
+                                    <constraint firstItem="fKm-jm-4Uf" firstAttribute="leading" secondItem="IXc-HP-c4m" secondAttribute="leading" id="w0W-Bj-Yk4"/>
                                 </constraints>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="HtJ-Ym-gXc">
@@ -1242,6 +1249,7 @@
                     </view>
                     <connections>
                         <outlet property="addButton" destination="p9Q-lb-x7V" id="dWF-Sv-EmC"/>
+                        <outlet property="bgImage" destination="fKm-jm-4Uf" id="4hS-8M-GnK"/>
                         <outlet property="bottomView" destination="fSl-0J-FpH" id="lwA-8L-cFG"/>
                         <outlet property="cancelButton" destination="Jdi-Ju-x0a" id="NR2-Vm-5CV"/>
                         <outlet property="expandButton" destination="NfL-2Z-df2" id="Yho-Qv-Tdw"/>

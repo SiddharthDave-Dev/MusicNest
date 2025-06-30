@@ -104,7 +104,7 @@ class TabbarVC: UIViewController {
         self.setUpSearchBar()
         self.setupTapToDismissKeyboard()
         self.applyGlassEffect(to: self.tabbarLeftView)
-        self.applyGlassEffect(to: self.searchView)
+        self.applyGlassEffect(to: self.searchView, isSearchBar: true)
         self.applyGlassEffect(to: self.bgImage)
         
         self.updateTabSelection(to: .home)
@@ -665,8 +665,8 @@ class TabbarVC: UIViewController {
         }
     }
     
-    func applyGlassEffect(to targetView: UIView) {
-        
+    func applyGlassEffect(to targetView: UIView, isSearchBar: Bool = false) {
+    
         targetView.backgroundColor = .clear
         
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
@@ -676,7 +676,14 @@ class TabbarVC: UIViewController {
         
         let tintOverlay = UIView(frame: targetView.bounds)
         tintOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        tintOverlay.backgroundColor = UIColor.white.withAlphaComponent(0.05)
+        
+//        if !isSearchBar {
+            tintOverlay.backgroundColor = UIColor.white.withAlphaComponent(0.05)
+//        } else {
+//            tintOverlay.backgroundColor = UIColor.systemBlue
+//        }
+        
+        
         
         blurView.contentView.addSubview(tintOverlay)
         

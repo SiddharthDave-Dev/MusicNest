@@ -2,8 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict/>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>youtube</string>
+		</array>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 		<key>UISceneConfigurations</key>
@@ -27,5 +35,7 @@
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
+	<key>YOUTUBE_API_KEY</key>
+	<string>$(YOUTUBE_API_KEY)</string>
 </dict>
 </plist>

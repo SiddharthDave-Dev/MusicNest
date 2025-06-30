@@ -98,7 +98,19 @@ class ExtractAudioVC: UIViewController {
     @IBAction func didTappedDownlaodAudioButton(_ sender: Any) {
     }
     
-    @IBAction func didTappedSaveAudioButton(_ sender: Any) {
+    @IBAction func didTappedOpenYoutubeButton(_ sender: Any) {
+        let youtubeMusicsVC = YoutubeMusicsVC.fetchInstance()
+        
+        if let sheet = youtubeMusicsVC.sheetPresentationController {
+            sheet.prefersGrabberVisible = true
+        }
+        
+        youtubeMusicsVC.didSelectMusicVideo = { [weak self] url in
+            self?.urlPasteTF.text = url
+            self?.urlPasteTF.updatePlaceholder()
+        }
+        
+        self.present(youtubeMusicsVC, animated: true)
     }
     
     @IBAction func didTappedRipAudioButton(_ sender: Any) {
@@ -137,7 +149,7 @@ class ExtractAudioVC: UIViewController {
         
         self.musicView.isHidden = true
         self.downloadAudioView.isHidden = true
-        self.saveAudioView.isHidden = true
+        self.saveAudioView.isHidden = false
         
         NotificationCenter.default.addObserver(
                 self,
@@ -585,5 +597,3 @@ func safeFileName(from title: String) -> String {
     let invalidCharacters = CharacterSet(charactersIn: "/\\?%*|\"<>:")
     return title.components(separatedBy: invalidCharacters).joined(separator: "_")
 }
-
-

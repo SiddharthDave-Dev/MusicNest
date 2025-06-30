@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		9FA3DD462E0033E500AB68E2 /* YouTubeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9FA3DD452E0033E500AB68E2 /* YouTubeKit */; };
+		9FA829322E11C4AA007E7014 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = 9FA829312E11C4AA007E7014 /* SDWebImage */; };
+		9FA829342E11C4AA007E7014 /* SDWebImageMapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9FA829332E11C4AA007E7014 /* SDWebImageMapKit */; };
 		9FC7B1E42DF9FD6500F32C42 /* Reusable in Frameworks */ = {isa = PBXBuildFile; productRef = 9FC7B1E32DF9FD6500F32C42 /* Reusable */; };
 /* End PBXBuildFile section */
 
@@ -41,7 +43,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9FA829322E11C4AA007E7014 /* SDWebImage in Frameworks */,
 				9FC7B1E42DF9FD6500F32C42 /* Reusable in Frameworks */,
+				9FA829342E11C4AA007E7014 /* SDWebImageMapKit in Frameworks */,
 				9FA3DD462E0033E500AB68E2 /* YouTubeKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -87,6 +91,8 @@
 			packageProductDependencies = (
 				9FC7B1E32DF9FD6500F32C42 /* Reusable */,
 				9FA3DD452E0033E500AB68E2 /* YouTubeKit */,
+				9FA829312E11C4AA007E7014 /* SDWebImage */,
+				9FA829332E11C4AA007E7014 /* SDWebImageMapKit */,
 			);
 			productName = MusicNest;
 			productReference = 9FC7B1A82DF9FD2100F32C42 /* MusicNest.app */;
@@ -119,6 +125,7 @@
 			packageReferences = (
 				9FC7B1E22DF9FD6500F32C42 /* XCRemoteSwiftPackageReference "Reusable" */,
 				9FA3DD442E0033E500AB68E2 /* XCRemoteSwiftPackageReference "YouTubeKit" */,
+				9FA829302E11C4AA007E7014 /* XCRemoteSwiftPackageReference "SDWebImage" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9FC7B1A92DF9FD2100F32C42 /* Products */;
@@ -153,6 +160,8 @@
 /* Begin XCBuildConfiguration section */
 		9FC7B1BC2DF9FD2100F32C42 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 9FC7B1AA2DF9FD2100F32C42 /* MusicNest */;
+			baseConfigurationReferenceRelativePath = Resources/Secrets/Secrets.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -213,6 +222,8 @@
 		};
 		9FC7B1BE2DF9FD2100F32C42 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 9FC7B1AA2DF9FD2100F32C42 /* MusicNest */;
+			baseConfigurationReferenceRelativePath = Resources/Secrets/Secrets.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -364,6 +375,14 @@
 				minimumVersion = 0.2.8;
 			};
 		};
+		9FA829302E11C4AA007E7014 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImage.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.21.1;
+			};
+		};
 		9FC7B1E22DF9FD6500F32C42 /* XCRemoteSwiftPackageReference "Reusable" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SiddharthDave-Dev/Reusable.git";
@@ -379,6 +398,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9FA3DD442E0033E500AB68E2 /* XCRemoteSwiftPackageReference "YouTubeKit" */;
 			productName = YouTubeKit;
+		};
+		9FA829312E11C4AA007E7014 /* SDWebImage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FA829302E11C4AA007E7014 /* XCRemoteSwiftPackageReference "SDWebImage" */;
+			productName = SDWebImage;
+		};
+		9FA829332E11C4AA007E7014 /* SDWebImageMapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FA829302E11C4AA007E7014 /* XCRemoteSwiftPackageReference "SDWebImage" */;
+			productName = SDWebImageMapKit;
 		};
 		9FC7B1E32DF9FD6500F32C42 /* Reusable */ = {
 			isa = XCSwiftPackageProductDependency;

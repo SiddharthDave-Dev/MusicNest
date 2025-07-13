@@ -452,6 +452,27 @@ class HomeVC: UIViewController {
         return metadataItems
     }
     
+    func updateIsFavourite(id: UUID, isFavourite: Bool) {
+        let context = container.mainContext
+        let fetchDescriptor = FetchDescriptor<PlaylistMusicModel>(
+            predicate: #Predicate { $0.id == id },  // Filter by ID
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        
+        do {
+            let songs = try context.fetch(fetchDescriptor)
+            if let song = songs.first {
+                song.isFavourite = isFavourite // Toggle the favorite status
+                try context.save()
+                print("✅ Updated isFavorite for: \(song.title)")
+            } else {
+                print("⚠️ Song with ID \(id) not found.")
+            }
+        } catch {
+            print("❌ Failed to update isFavorite: \(error)")
+        }
+    }
+    
     class func fetchInstance() -> Self {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         return storyboard.instantiateViewController(withIdentifier: "\(Self.self)") as! Self
@@ -585,9 +606,11 @@ extension HomeVC: UITableViewDelegate, UITableViewDataSource {
                 if music.isFavourite {
 //                        self.showAlert(title: "Already a Favorite", message: "\(music.title) is already marked as favorite.")
                     music.isFavourite = false
+                    self.updateIsFavourite(id: music.id, isFavourite: false)
                     self.showAlert(title: "Removed from Favorites", message: "\"\(music.title)\" has been removed from your favorites.")
                 } else {
                     music.isFavourite = true
+                    self.updateIsFavourite(id: music.id, isFavourite: true)
                     self.showAlert(title: "Added to Favorites", message: "\(music.title) has been added to favorites.")
                 }
                 
@@ -728,6 +751,7 @@ extension HomeVC: UITableViewDelegate, UITableViewDataSource {
                     self.showAlert(title: "Already a Favorite", message: "\(musicData.title) is already marked as favorite.")
                 } else {
                     musicData.isFavourite = true
+                    self.updateIsFavourite(id: musicData.id, isFavourite: true)
                     self.showAlert(title: "Added to Favorites", message: "\(musicData.title) has been added to favorites.")
                 }
             }

@@ -372,7 +372,6 @@ class FavoriteVC: UIViewController {
         return metadataItems
     }
 
-    
     func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -389,6 +388,49 @@ class FavoriteVC: UIViewController {
     
     func getAudioURL(for music: PlaylistMusicModel) -> URL {
         return getDocumentsDirectory().appendingPathComponent(music.fileName)
+    }
+    
+    
+    func updateIsFavourite(id: UUID, isFavourite: Bool) {
+        let context = container.mainContext
+        let fetchDescriptor = FetchDescriptor<MusicModel>(
+            predicate: #Predicate { $0.id == id },  // Filter by ID
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        
+        do {
+            let songs = try context.fetch(fetchDescriptor)
+            if let song = songs.first {
+                song.isFavourite = isFavourite // Toggle the favorite status
+                try context.save()
+                print("✅ Updated isFavorite for: \(song.title)")
+            } else {
+                print("⚠️ Song with ID \(id) not found.")
+            }
+        } catch {
+            print("❌ Failed to update isFavorite: \(error)")
+        }
+    }
+
+    func updateIsFavouritePlaylist(id: UUID, isFavourite: Bool) {
+        let context = container.mainContext
+        let fetchDescriptor = FetchDescriptor<PlaylistMusicModel>(
+            predicate: #Predicate { $0.id == id },  // Filter by ID
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        
+        do {
+            let songs = try context.fetch(fetchDescriptor)
+            if let song = songs.first {
+                song.isFavourite = isFavourite // Toggle the favorite status
+                try context.save()
+                print("✅ Updated isFavorite for: \(song.title)")
+            } else {
+                print("⚠️ Song with ID \(id) not found.")
+            }
+        } catch {
+            print("❌ Failed to update isFavorite: \(error)")
+        }
     }
     
     class func fetchInstance() -> Self {
@@ -426,11 +468,15 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
                 case .favorite:
                     if music.isFavourite {
                         music.isFavourite = false
+                        self.updateIsFavourite(id: music.id, isFavourite: false)
                         self.showAlert(title: "Removed from Favorites", message: "\"\(music.title)\" has been removed from your favorites.")
+                        
                     } else {
                         music.isFavourite = true
+                        self.updateIsFavourite(id: music.id, isFavourite: true)
                         self.showAlert(title: "Added to Favorites", message: "\(music.title) has been added to favorites.")
                     }
+                    
                     
                     delay(0) {
                         self.tableView.reloadData()
@@ -495,9 +541,11 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
                     if music.isFavourite {
 //                        self.showAlert(title: "Already a Favorite", message: "\(music.title) is already marked as favorite.")
                         music.isFavourite = false
+                        self.updateIsFavouritePlaylist(id: music.id, isFavourite: false)
                         self.showAlert(title: "Removed from Favorites", message: "\"\(music.title)\" has been removed from your favorites.")
                     } else {
                         music.isFavourite = true
+                        self.updateIsFavouritePlaylist(id: music.id, isFavourite: true)
                         self.showAlert(title: "Added to Favorites", message: "\(music.title) has been added to favorites.")
                     }
                     
@@ -608,7 +656,7 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
 
                 // 1. Update the property
                 itemToDelete.isFavourite = false
-
+                self.updateIsFavouritePlaylist(id: itemToDelete.id, isFavourite: false)
                 // 2. Remove from data source
                 self.data.remove(at: indexPath.row)
 

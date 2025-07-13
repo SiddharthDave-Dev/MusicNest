@@ -425,7 +425,9 @@ class ExtractAudioVC: UIViewController {
             }
             
             // Add to window instead of view controller's view
-            self.view.addSubview(memberInfo)
+            keyWindow.addSubview(memberInfo)
+            keyWindow.bringSubviewToFront(memberInfo)
+
             
             // Use safe area of window
             NSLayoutConstraint.activate([

@@ -9,7 +9,7 @@ import UIKit
 import Reusable
 
 enum AudioOption {
-    case playNext, favorite, playlist, share, delete
+    case playNext, favorite, playlist, share, delete, download
 }
 
 class HomeTVC: UITableViewCell {
@@ -30,7 +30,7 @@ class HomeTVC: UITableViewCell {
         self.musicImage.borderWidth = 1
         self.musicImage.cornerRadius = 10
         
-        self.setupSortMenu()
+//        self.setupSortMenu()
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
@@ -43,14 +43,22 @@ class HomeTVC: UITableViewCell {
     @IBAction func didTappedInfoButton(_ sender: Any) {
     }
     
-    func setupSortMenu(showAll: Bool = true) {
+    func setupSortMenu(showAll: Bool = true, isFavorite: Bool) {
         let playNextAction = UIAction(title: "Play Next", image: UIImage(systemName: "forward")) { [weak self] _ in
             self?.onAudioOptionSelected?(.playNext)
         }
         
-        let favoriteAction = UIAction(title: "Favorite", image: UIImage(systemName: "heart")) { [weak self] _ in
+        let favoriteTitle = isFavorite ? "Unfavorite" : "Favorite"
+        let favoriteImageName = isFavorite ? "heart.slash" : "heart"
+
+        let favoriteAction = UIAction(title: favoriteTitle, image: UIImage(systemName: favoriteImageName)) { [weak self] _ in
             self?.onAudioOptionSelected?(.favorite)
         }
+
+        
+//        let favoriteAction = UIAction(title: "Favorite", image: UIImage(systemName: "heart")) { [weak self] _ in
+//            self?.onAudioOptionSelected?(.favorite)
+//        }
         
         let playlistAction = UIAction(title: "Add to Playlist", image: UIImage(systemName: "text.badge.plus")) { [weak self] _ in
             self?.onAudioOptionSelected?(.playlist)
@@ -60,13 +68,17 @@ class HomeTVC: UITableViewCell {
             self?.onAudioOptionSelected?(.share)
         }
         
+        let downloadAction = UIAction(title: "Download", image: UIImage(systemName: "arrow.down.circle")) { [weak self] _ in
+            self?.onAudioOptionSelected?(.download)
+        }
+        
         let deleteAction = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
             self?.onAudioOptionSelected?(.delete)
         }
         
         let menu: UIMenu
 
-        var actions: [UIMenuElement] = [playNextAction, favoriteAction, shareAction, deleteAction]
+        var actions: [UIMenuElement] = [playNextAction, favoriteAction, downloadAction, shareAction, deleteAction]
         if showAll {
             actions.insert(playlistAction, at: 2) // Add playlist between favorite & share
         }
@@ -87,6 +99,8 @@ class HomeTVC: UITableViewCell {
         self.dateLabel.text = formatter.string(from: musicData.date)
         
         self.heartImage.isHidden = !musicData.isFavourite
+        
+        self.setupSortMenu(isFavorite: musicData.isFavourite)
 
     }
     

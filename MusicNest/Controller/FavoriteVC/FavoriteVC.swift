@@ -8,6 +8,7 @@
 import UIKit
 import SwiftData
 import Reusable
+import AVFoundation
 
 class FavoriteVC: UIViewController {
 
@@ -217,6 +218,161 @@ class FavoriteVC: UIViewController {
         }
     }
     
+    func exportAudioWithMetadata(_ item: MusicModel) {
+        let sourceURL = getAudioURL(for: item)
+        // Input asset
+        let asset = AVAsset(url: sourceURL)
+
+        // Safe file name
+        let sanitizedTitle = (item.title ?? "Exported_\(UUID().uuidString)")
+            .replacingOccurrences(of: " ", with: "_")
+            .replacingOccurrences(of: "/", with: "-") // avoid invalid characters
+
+        let outputURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(sanitizedTitle + ".m4a")
+
+        // Remove file if already exists
+        try? FileManager.default.removeItem(at: outputURL)
+
+        // Create export session
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
+            print("❌ Cannot create AVAssetExportSession")
+            return
+        }
+
+        exportSession.outputFileType = .m4a
+        exportSession.outputURL = outputURL
+        exportSession.metadata = createAudioMetadata(item)
+
+        exportSession.exportAsynchronously {
+            DispatchQueue.main.async {
+                switch exportSession.status {
+                case .completed:
+                    print("✅ Export succeeded at: \(outputURL.path)")
+                    let documentPicker = UIDocumentPickerViewController(forExporting: [outputURL])
+                    documentPicker.delegate = self
+                    documentPicker.modalPresentationStyle = .formSheet
+                    self.present(documentPicker, animated: true)
+                case .failed:
+                    print("❌ Export failed: \(exportSession.error?.localizedDescription ?? "unknown error")")
+                case .cancelled:
+                    print("⚠️ Export cancelled")
+                default:
+                    break
+                }
+            }
+        }
+    }
+    
+    func exportAudioWithMetadata(_ item: PlaylistMusicModel) {
+        let sourceURL = getAudioURL(for: item)
+        // Input asset
+        let asset = AVAsset(url: sourceURL)
+
+        // Safe file name
+        let sanitizedTitle = (item.title ?? "Exported_\(UUID().uuidString)")
+            .replacingOccurrences(of: " ", with: "_")
+            .replacingOccurrences(of: "/", with: "-") // avoid invalid characters
+
+        let outputURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(sanitizedTitle + ".m4a")
+
+        // Remove file if already exists
+        try? FileManager.default.removeItem(at: outputURL)
+
+        // Create export session
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
+            print("❌ Cannot create AVAssetExportSession")
+            return
+        }
+
+        exportSession.outputFileType = .m4a
+        exportSession.outputURL = outputURL
+        exportSession.metadata = createAudioMetadata(item)
+
+        exportSession.exportAsynchronously {
+            DispatchQueue.main.async {
+                switch exportSession.status {
+                case .completed:
+                    print("✅ Export succeeded at: \(outputURL.path)")
+                    let documentPicker = UIDocumentPickerViewController(forExporting: [outputURL])
+                    documentPicker.delegate = self
+                    documentPicker.modalPresentationStyle = .formSheet
+                    self.present(documentPicker, animated: true)
+                case .failed:
+                    print("❌ Export failed: \(exportSession.error?.localizedDescription ?? "unknown error")")
+                case .cancelled:
+                    print("⚠️ Export cancelled")
+                default:
+                    break
+                }
+            }
+        }
+    }
+    
+    private func createAudioMetadata(_ item: MusicModel) -> [AVMetadataItem] {
+        var metadataItems: [AVMetadataItem] = []
+        
+        let title = item.title
+        let titleItem = AVMutableMetadataItem()
+        titleItem.keySpace = .common
+        titleItem.key = AVMetadataKey.commonKeyTitle as (NSCopying & NSObjectProtocol)
+        titleItem.value = title as (NSCopying & NSObjectProtocol)
+        metadataItems.append(titleItem)
+        
+        
+        let artist = item.artist
+        let artistItem = AVMutableMetadataItem()
+        artistItem.keySpace = .common
+        artistItem.key = AVMetadataKey.commonKeyArtist as (NSCopying & NSObjectProtocol)
+        artistItem.value = artist as (NSCopying & NSObjectProtocol)
+        metadataItems.append(artistItem)
+        
+        
+        let imageData = item.imageData
+        let artworkItem = AVMutableMetadataItem()
+        artworkItem.keySpace = .iTunes
+        artworkItem.key = AVMetadataKey.iTunesMetadataKeyCoverArt as (NSCopying & NSObjectProtocol)
+        artworkItem.value = imageData as (NSCopying & NSObjectProtocol)
+        artworkItem.dataType = kCMMetadataBaseDataType_PNG as String
+        metadataItems.append(artworkItem)
+        
+        
+        return metadataItems
+    }
+    
+    private func createAudioMetadata(_ item: PlaylistMusicModel) -> [AVMetadataItem] {
+        var metadataItems: [AVMetadataItem] = []
+        
+        let title = item.title
+        let titleItem = AVMutableMetadataItem()
+        titleItem.keySpace = .common
+        titleItem.key = AVMetadataKey.commonKeyTitle as (NSCopying & NSObjectProtocol)
+        titleItem.value = title as (NSCopying & NSObjectProtocol)
+        metadataItems.append(titleItem)
+        
+        
+        let artist = item.artist
+        let artistItem = AVMutableMetadataItem()
+        artistItem.keySpace = .common
+        artistItem.key = AVMetadataKey.commonKeyArtist as (NSCopying & NSObjectProtocol)
+        artistItem.value = artist as (NSCopying & NSObjectProtocol)
+        metadataItems.append(artistItem)
+        
+        
+        let imageData = item.imageData
+        let artworkItem = AVMutableMetadataItem()
+        artworkItem.keySpace = .iTunes
+        artworkItem.key = AVMetadataKey.iTunesMetadataKeyCoverArt as (NSCopying & NSObjectProtocol)
+        artworkItem.value = imageData as (NSCopying & NSObjectProtocol)
+        artworkItem.dataType = kCMMetadataBaseDataType_PNG as String
+        metadataItems.append(artworkItem)
+        
+        
+        return metadataItems
+    }
+
+    
     func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -261,7 +417,7 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
             let isPlaying = (music.id == currentlyPlayingID)
             cell.setPlayingState(isPlaying: isPlaying)
             
-            cell.setupSortMenu(showAll: false)
+            cell.setupSortMenu(showAll: false, isFavorite: music.isFavourite)
             
             cell.onAudioOptionSelected = { option in
                 switch option {
@@ -269,13 +425,15 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
                     self.delegate?.addNextSong(music)
                 case .favorite:
                     if music.isFavourite {
-                        self.showAlert(title: "Already a Favorite", message: "\(music.title) is already marked as favorite.")
+                        music.isFavourite = false
+                        self.showAlert(title: "Removed from Favorites", message: "\"\(music.title)\" has been removed from your favorites.")
                     } else {
                         music.isFavourite = true
                         self.showAlert(title: "Added to Favorites", message: "\(music.title) has been added to favorites.")
-                        delay(0) {
-                            self.tableView.reloadData()
-                        }
+                    }
+                    
+                    delay(0) {
+                        self.tableView.reloadData()
                     }
                 case .playlist:
                     break
@@ -297,21 +455,24 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
                     self.present(activityVC, animated: true)
                 case .delete:
                     let itemToDelete = self.playlistMusicData[indexPath.row]
-
+                    
                     // Remove from data source
                     self.playlistMusicData.remove(at: indexPath.row)
-
+                    
                     // Remove from playlist model and persist
                     self.playlistData?.musicData.removeAll(where: { $0.id == itemToDelete.id })
-
+                    
                     do {
                         try self.container.mainContext.save()
                         print("✅ Deleted music from playlist")
                     } catch {
                         print("❌ Failed to delete music: \(error)")
                     }
-
+                    
                     tableView.deleteRows(at: [indexPath], with: .automatic)
+                    
+                case .download:
+                    self.exportAudioWithMetadata(music)
                 }
             }
             
@@ -324,7 +485,7 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
             let isPlaying = (music.id == currentlyPlayingID)
             cell.setPlayingState(isPlaying: isPlaying)
             
-            cell.setupSortMenu(showAll: false)
+            cell.setupSortMenu(showAll: false, isFavorite: music.isFavourite)
             
             cell.onAudioOptionSelected = { option in
                 switch option {
@@ -332,13 +493,16 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
                     self.delegate?.addNextSong(music)
                 case .favorite:
                     if music.isFavourite {
-                        self.showAlert(title: "Already a Favorite", message: "\(music.title) is already marked as favorite.")
+//                        self.showAlert(title: "Already a Favorite", message: "\(music.title) is already marked as favorite.")
+                        music.isFavourite = false
+                        self.showAlert(title: "Removed from Favorites", message: "\"\(music.title)\" has been removed from your favorites.")
                     } else {
                         music.isFavourite = true
                         self.showAlert(title: "Added to Favorites", message: "\(music.title) has been added to favorites.")
-                        delay(0) {
-                            self.tableView.reloadData()
-                        }
+                    }
+                    
+                    delay(0) {
+                        self.tableView.reloadData()
                     }
                 case .playlist:
                    break
@@ -376,6 +540,8 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
 
                     // 4. Delete from table view
                     tableView.deleteRows(at: [indexPath], with: .automatic)
+                case .download:
+                    self.exportAudioWithMetadata(music)
                 }
             }
         }
@@ -501,3 +667,21 @@ extension FavoriteVC: UITableViewDelegate, UITableViewDataSource {
 //        }
 //    }
 }
+
+extension FavoriteVC: UIDocumentPickerDelegate {
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        print("❕ User cancelled the document picker.")
+    }
+    
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        print("✅ Audio saved to: \(urls.first?.path ?? "")")
+        
+        // Optional: Show alert
+        let alert = UIAlertController(title: "Success", message: "Audio has been saved to Files.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        self.present(alert, animated: true)
+    }
+}
+
+
+

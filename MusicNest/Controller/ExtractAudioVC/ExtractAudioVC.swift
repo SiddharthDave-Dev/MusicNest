@@ -205,6 +205,7 @@ class ExtractAudioVC: UIViewController {
                     print("🖼️ Thumbnail URL: \(thumbnailURLString)")
                 }
             } catch {
+                self.ripAudioButton.isEnabled = false
                 print("❌ Failed to fetch metadata: \(error)")
             }
         }
@@ -251,8 +252,9 @@ class ExtractAudioVC: UIViewController {
         } catch {
             print("❌ Failed to fetch YouTube streams: \(error)")
             
-            
+            self.ripAudioButton.isEnabled = false
             delay(0) { [weak self] in
+                
                 self?.showAlert(title: "Error", message: "Failed to fetch the audio stream from the provided YouTube URL. Please check the URL or try again later.")
             }
         }
@@ -377,8 +379,16 @@ class ExtractAudioVC: UIViewController {
         
         targetView.backgroundColor = .clear
         
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
-        let blurView = UIVisualEffectView(effect: blurEffect)
+        var effect = UIVisualEffect()
+       
+       if #available(iOS 26.0, *) {
+           effect = UIGlassEffect(style: .clear)
+       } else {
+           effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
+       }
+//        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+//        let blurView = UIVisualEffectView(effect: blurEffect)
+       let blurView = UIVisualEffectView(effect: effect)
         blurView.frame = targetView.bounds
         blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         

@@ -331,8 +331,16 @@ class AllAudioVC: UIViewController {
         
         targetView.backgroundColor = .clear
         
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
-        let blurView = UIVisualEffectView(effect: blurEffect)
+        var effect = UIVisualEffect()
+       
+       if #available(iOS 26.0, *) {
+           effect = UIGlassEffect(style: .clear)
+       } else {
+           effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
+       }
+//        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+//        let blurView = UIVisualEffectView(effect: blurEffect)
+       let blurView = UIVisualEffectView(effect: effect)
         blurView.frame = targetView.bounds
         blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         

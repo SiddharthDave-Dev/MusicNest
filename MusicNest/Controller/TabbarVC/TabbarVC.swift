@@ -105,7 +105,8 @@ class TabbarVC: UIViewController {
         self.setupTapToDismissKeyboard()
         self.applyGlassEffect(to: self.tabbarLeftView)
         self.applyGlassEffect(to: self.searchView, isSearchBar: true)
-        self.applyGlassEffect(to: self.bgImage)
+//        self.applyGlassEffect(to: self.bgImage)
+        self.applyGlassEffect(to: self.musicView)
         
         self.updateTabSelection(to: .home)
     }
@@ -668,9 +669,16 @@ class TabbarVC: UIViewController {
     func applyGlassEffect(to targetView: UIView, isSearchBar: Bool = false) {
     
         targetView.backgroundColor = .clear
-        
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
-        let blurView = UIVisualEffectView(effect: blurEffect)
+        var effect = UIVisualEffect()
+       
+       if #available(iOS 26.0, *) {
+           effect = UIGlassEffect(style: .clear)
+       } else {
+           effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
+       }
+//        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+//        let blurView = UIVisualEffectView(effect: blurEffect)
+       let blurView = UIVisualEffectView(effect: effect)
         blurView.frame = targetView.bounds
         blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         

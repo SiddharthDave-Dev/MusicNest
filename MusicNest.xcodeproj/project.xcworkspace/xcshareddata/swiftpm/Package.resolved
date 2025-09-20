@@ -1,5 +1,5 @@
 {
-  "originHash" : "022a93c339997b9080e8a2810846ef45230a029fc56d336626182762d87d6b38",
+  "originHash" : "8b369af19bcc245d00e0bd838f9e2e845301c244a108be63e1da8315fb3a5894",
   "pins" : [
     {
       "identity" : "reusable",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SDWebImage/SDWebImage.git",
       "state" : {
-        "revision" : "b62cb63bf4ed1f04c961a56c9c6c9d5ab8524ec6",
-        "version" : "5.21.1"
+        "revision" : "34cf2423a2c4088d06a3b08655603b5bc3eeeb3a",
+        "version" : "5.21.2"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/alexeichhorn/YouTubeKit.git",
       "state" : {
-        "revision" : "fae7914e970a116405d89ae9cbbcfb2915824100",
-        "version" : "0.2.8"
+        "revision" : "03c96d8d388fac47bef08f7f6b693e61f3939aeb",
+        "version" : "0.2.9"
       }
     }
   ],

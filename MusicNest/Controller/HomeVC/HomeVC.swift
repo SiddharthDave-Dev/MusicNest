@@ -88,8 +88,31 @@ class HomeVC: UIViewController {
         
         self.originalData = self.fetchMusic()
         self.data = self.originalData
-        self.sortView.cornerRadius = 10
-        self.sortView.backgroundColor = .systemGray.withAlphaComponent(0.5)
+        if #available(iOS 26.0, *) {
+            self.sortView.layer.cornerRadius = 10
+            self.sortView.clipsToBounds = true
+
+            let glassEffect = UIGlassEffect(style: .regular) // or .clear
+            let effectView = UIVisualEffectView(effect: glassEffect)
+            effectView.frame = sortView.bounds
+            effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
+            sortView.insertSubview(effectView, at: 0) // put effect behind other content
+        } else {
+            self.sortView.layer.cornerRadius = 10
+            self.sortView.clipsToBounds = true
+
+            let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+            let effectView = UIVisualEffectView(effect: blurEffect)
+            effectView.frame = sortView.bounds
+            effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
+            effectView.backgroundColor = .systemGray.withAlphaComponent(0.5)
+            sortView.insertSubview(effectView, at: 0)
+        }
+
+//        self.sortView.cornerRadius = 10
+//        self.sortView.backgroundColor = .systemGray.withAlphaComponent(0.5)
         
        
     }

@@ -99,10 +99,20 @@ class TabbarVC: UIViewController {
 
 //        self.view.bringSubviewToFront(self.musicView)
         NotificationCenter.default.addObserver(self, selector: #selector(stopAudioIfPlaying), name: .stopAllAudio, object: nil)
+        NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handleGlassEffectChange(_:)),
+                name: .glassEffectChanged,
+                object: nil
+            )
+        
         self.musicView.isCircle = true
         self.setUI()
         self.setUpSearchBar()
         self.setupTapToDismissKeyboard()
+        
+        
+        
         self.applyGlassEffect(to: self.tabbarLeftView)
         self.applyGlassEffect(to: self.searchView, isSearchBar: true)
 //        self.applyGlassEffect(to: self.bgImage)
@@ -125,6 +135,13 @@ class TabbarVC: UIViewController {
     
     override var canBecomeFirstResponder: Bool {
         return true
+    }
+    
+    @objc func handleGlassEffectChange(_ notification: Notification) {
+        self.applyGlassEffect(to: self.tabbarLeftView)
+        self.applyGlassEffect(to: self.searchView, isSearchBar: true)
+//        self.applyGlassEffect(to: self.bgImage)
+        self.applyGlassEffect(to: self.musicView)
     }
     
     @objc private func stopAudioIfPlaying() {
@@ -668,14 +685,24 @@ class TabbarVC: UIViewController {
     
     func applyGlassEffect(to targetView: UIView, isSearchBar: Bool = false) {
     
+        
+        targetView.subviews
+                .filter { $0 is UIVisualEffectView }
+                .forEach { $0.removeFromSuperview() }
+        
         targetView.backgroundColor = .clear
         var effect = UIVisualEffect()
        
-       if #available(iOS 26.0, *) {
-           effect = UIGlassEffect(style: .clear)
-       } else {
-           effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
-       }
+        if UserDefaultsHelper.selectedGlassEffect == .none {
+            effect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+        } else {
+            
+            if #available(iOS 26.0, *) {
+                effect = UIGlassEffect(style: UserDefaultsHelper.selectedGlassEffect == .clear ? .clear : .regular)
+            } else {
+                effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
+            }
+        }
 //        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
 //        let blurView = UIVisualEffectView(effect: blurEffect)
        let blurView = UIVisualEffectView(effect: effect)
@@ -1612,4 +1639,5 @@ extension TabbarVC: AVAudioPlayerDelegate  {
 extension Notification.Name {
     static let musicViewVisibilityChanged = Notification.Name("musicViewVisibilityChanged")
     static let stopAllAudio = Notification.Name("StopAllAudio")
+    static let glassEffectChanged = Notification.Name("glassEffectChanged")
 }

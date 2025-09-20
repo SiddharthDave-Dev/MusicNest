@@ -11,6 +11,8 @@ import UIKit
 class UserDefaultsHelper {
     
     private static let isFirstTimeKey = "isFirstTimeKey"
+    private static let selectedGlassEffectKey = "selectedGlassEffectKey"
+    
     
     static var isFirstTime: Bool {
         get {
@@ -21,6 +23,24 @@ class UserDefaultsHelper {
         }
         set {
             UserDefaults.standard.set(newValue, forKey: isFirstTimeKey)
+        }
+    }
+    
+    static var selectedGlassEffect: ApplyGlassEffect {
+        get {
+            guard let rawValue = UserDefaults.standard.string(forKey: selectedGlassEffectKey),
+                  let effect = ApplyGlassEffect(rawValue: rawValue) else {
+                
+                if #available(iOS 26.0, *) {
+                    return .clear
+                } else {
+                    return .none
+                }
+            }
+            return effect
+        }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: selectedGlassEffectKey)
         }
     }
 }

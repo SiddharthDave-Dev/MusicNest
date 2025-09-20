@@ -26,7 +26,8 @@ class SettingsVC: UIViewController {
         SettingsModel(id: 1, title: "Your Favorite Music"),
         SettingsModel(id: 2, title: "Privacy Policy"),
         SettingsModel(id: 3, title: "Terms & Conditions"),
-        SettingsModel(id: 4, title: "Select Music")
+        SettingsModel(id: 4, title: "Select Music"),
+        SettingsModel(id: 5, title: "Glass Effect")
     ]
     
     override func viewDidLoad() {
@@ -36,9 +37,17 @@ class SettingsVC: UIViewController {
         self.registerTableView()
     }
     
-    private func setUp() {
+    @objc func handleGlassEffectChange(_ notification: Notification) {
+        delay(0) {
+            self.tableView.reloadData()
+        }
         
     }
+    
+    private func setUp() {
+        NotificationCenter.default.addObserver(self, selector: #selector(handleGlassEffectChange(_:)), name: .glassEffectChanged, object: nil)
+    }
+    
     
     private func registerTableView() {
         self.tableView.registerTableViewCell(withNibName: "SettingsTVC", identifier: "SettingsTVC")
@@ -115,6 +124,7 @@ extension SettingsVC: UITableViewDelegate, UITableViewDataSource {
         cell.selectionStyle = .none
         
         cell.configureUI(self.settingsData[indexPath.row])
+        cell.glassEffectLabel.isHidden = !(self.settingsData[indexPath.row].id == 5)
         
         return cell
     }
@@ -166,6 +176,40 @@ extension SettingsVC: UITableViewDelegate, UITableViewDataSource {
             let pickerView = AudioPickerView(container: AppDelegate.sharedContainer, presentingVC: self)
             pickerView.delegate = self
             self.view.addSubview(pickerView)
+        } else if data.id == 5 {
+            
+                let menu = UIMenu(title: "Glass Effect", children: [
+                    UIAction(title: "Regular", image: UIImage(systemName: "circle.fill")) { _ in
+                        if #available(iOS 26.0, *) {
+//                            let glassEffect = UIGlassEffect(style: .regular)
+//                            self.applyEffect(glassEffect)
+                        } else {
+                            let blur = UIBlurEffect(style: .systemUltraThinMaterialLight)
+//                            self.applyEffect(blur)
+                        }
+                    },
+                    UIAction(title: "Clear", image: UIImage(systemName: "circle.dotted")) { _ in
+                        if #available(iOS 26.0, *) {
+//                            let glassEffect = UIGlassEffect(style: .clear)
+//                            self.applyEffect(glassEffect)
+                        } else {
+//                            let blur = UIBlurEffect(style: .systemMaterialLight)
+//                            self.applyEffect(blur)
+                        }
+                    },
+                    UIAction(title: "None", image: UIImage(systemName: "xmark")) { _ in
+//                        self.removeEffect()
+                    }
+                ])
+
+                // Create a button as an anchor for the menu
+                let menuButton = UIButton(type: .system)
+                menuButton.showsMenuAsPrimaryAction = true
+                menuButton.menu = menu
+
+                // Present the menu immediately
+                menuButton.sendActions(for: .touchUpInside)
+
         } else {
             
         }

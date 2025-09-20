@@ -70,6 +70,19 @@ class AllAudioVC: UIViewController {
         self.registerTableView()
         self.setUpSearchBar()
         
+        
+        NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handleGlassEffectChange(_:)),
+                name: .glassEffectChanged,
+                object: nil
+            )
+        
+        self.applyGlassEffect(to: self.saveView)
+        self.applyGlassEffect(to: self.searchView)
+    }
+    
+    @objc func handleGlassEffectChange(_ notification: Notification) {
         self.applyGlassEffect(to: self.saveView)
         self.applyGlassEffect(to: self.searchView)
     }
@@ -329,15 +342,24 @@ class AllAudioVC: UIViewController {
     
     func applyGlassEffect(to targetView: UIView) {
         
+        targetView.subviews
+                .filter { $0 is UIVisualEffectView }
+                .forEach { $0.removeFromSuperview() }
+        
         targetView.backgroundColor = .clear
         
         var effect = UIVisualEffect()
        
-       if #available(iOS 26.0, *) {
-           effect = UIGlassEffect(style: .clear)
-       } else {
-           effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
-       }
+        if UserDefaultsHelper.selectedGlassEffect == .none {
+            effect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+        } else {
+            
+            if #available(iOS 26.0, *) {
+                effect = UIGlassEffect(style: UserDefaultsHelper.selectedGlassEffect == .clear ? .clear : .regular)
+            } else {
+                effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
+            }
+        }
 //        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
 //        let blurView = UIVisualEffectView(effect: blurEffect)
        let blurView = UIVisualEffectView(effect: effect)

@@ -10,6 +10,12 @@ import Reusable
 import SwiftData
 import AVFoundation
 
+enum ApplyGlassEffect: String{
+    case clear = "Clear"
+    case regular = "Regular"
+    case none = "None"
+}
+
 enum SortOption {
     case none
     case date
@@ -83,22 +89,31 @@ class HomeVC: UIViewController {
         setupSortMenu()
     }
     
+    @objc func handleGlassEffectChange(_ notification: Notification) {
+        self.applySortViewEffect()
+    }
+    
     private func setUp() {
         self.container = AppDelegate.sharedContainer
         
         self.originalData = self.fetchMusic()
         self.data = self.originalData
-        if #available(iOS 26.0, *) {
-            self.sortView.layer.cornerRadius = 10
-            self.sortView.clipsToBounds = true
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handleGlassEffectChange(_:)), name: .glassEffectChanged, object: nil)
+        
+        self.applySortViewEffect()
 
-            let glassEffect = UIGlassEffect(style: .regular) // or .clear
-            let effectView = UIVisualEffectView(effect: glassEffect)
-            effectView.frame = sortView.bounds
-            effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//        self.sortView.cornerRadius = 10
+//        self.sortView.backgroundColor = .systemGray.withAlphaComponent(0.5)
+        
+       
+    }
+    
+    func applySortViewEffect() {
+        // Remove any existing effect views
+        sortView.subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
 
-            sortView.insertSubview(effectView, at: 0) // put effect behind other content
-        } else {
+        if UserDefaultsHelper.selectedGlassEffect == .none {
             self.sortView.layer.cornerRadius = 10
             self.sortView.clipsToBounds = true
 
@@ -109,12 +124,30 @@ class HomeVC: UIViewController {
 
             effectView.backgroundColor = .systemGray.withAlphaComponent(0.5)
             sortView.insertSubview(effectView, at: 0)
+        } else {
+            if #available(iOS 26.0, *) {
+                self.sortView.layer.cornerRadius = 10
+                self.sortView.clipsToBounds = true
+                
+                let glassEffect = UIGlassEffect(style: UserDefaultsHelper.selectedGlassEffect == .clear ? .clear : .regular) // or .clear
+                let effectView = UIVisualEffectView(effect: glassEffect)
+                effectView.frame = sortView.bounds
+                effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                
+                sortView.insertSubview(effectView, at: 0) // put effect behind other content
+            } else {
+                self.sortView.layer.cornerRadius = 10
+                self.sortView.clipsToBounds = true
+                
+                let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+                let effectView = UIVisualEffectView(effect: blurEffect)
+                effectView.frame = sortView.bounds
+                effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                
+                effectView.backgroundColor = .systemGray.withAlphaComponent(0.5)
+                sortView.insertSubview(effectView, at: 0)
+            }
         }
-
-//        self.sortView.cornerRadius = 10
-//        self.sortView.backgroundColor = .systemGray.withAlphaComponent(0.5)
-        
-       
     }
     
     private func registerTableView() {

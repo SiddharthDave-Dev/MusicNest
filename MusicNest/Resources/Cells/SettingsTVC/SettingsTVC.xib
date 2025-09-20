@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24127" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24063"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -25,11 +25,38 @@
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="chevron.right" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="xaf-JH-9Qg">
+                                <rect key="frame" x="284" y="13.999999999999998" width="20" height="16.333333333333329"/>
+                                <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="20" id="7E1-ei-XhD"/>
+                                    <constraint firstAttribute="height" constant="20" id="O0g-LW-CKD"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TPp-YP-0rJ">
+                                <rect key="frame" x="242.66666666666666" y="7.6666666666666679" width="35.333333333333343" height="29.000000000000004"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jkB-zh-qcW">
+                                <rect key="frame" x="242.66666666666666" y="7.6666666666666679" width="35.333333333333343" height="29.000000000000004"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstItem="TPp-YP-0rJ" firstAttribute="centerY" secondItem="xaf-JH-9Qg" secondAttribute="centerY" id="33X-sd-lXR"/>
+                            <constraint firstItem="jkB-zh-qcW" firstAttribute="leading" secondItem="TPp-YP-0rJ" secondAttribute="leading" id="98B-vE-i17"/>
+                            <constraint firstItem="xaf-JH-9Qg" firstAttribute="leading" secondItem="TPp-YP-0rJ" secondAttribute="trailing" constant="6" id="CIM-Oe-bkh"/>
+                            <constraint firstItem="jkB-zh-qcW" firstAttribute="bottom" secondItem="TPp-YP-0rJ" secondAttribute="bottom" id="IIh-Zf-su7"/>
+                            <constraint firstItem="xaf-JH-9Qg" firstAttribute="centerY" secondItem="qzI-D9-nbR" secondAttribute="centerY" id="TST-Zq-Ojc"/>
                             <constraint firstAttribute="trailing" secondItem="MXp-Si-wsB" secondAttribute="trailing" constant="10" id="Vdl-qk-Jd1"/>
+                            <constraint firstItem="jkB-zh-qcW" firstAttribute="trailing" secondItem="TPp-YP-0rJ" secondAttribute="trailing" id="aTJ-Sg-L1P"/>
+                            <constraint firstItem="jkB-zh-qcW" firstAttribute="top" secondItem="TPp-YP-0rJ" secondAttribute="top" id="c0Y-7m-i2G"/>
                             <constraint firstItem="MXp-Si-wsB" firstAttribute="centerY" secondItem="qzI-D9-nbR" secondAttribute="centerY" id="jT5-yT-ADd"/>
+                            <constraint firstAttribute="trailing" secondItem="xaf-JH-9Qg" secondAttribute="trailing" constant="16" id="s24-K3-BAQ"/>
                             <constraint firstItem="MXp-Si-wsB" firstAttribute="leading" secondItem="qzI-D9-nbR" secondAttribute="leading" constant="16" id="vv0-j1-9wN"/>
                         </constraints>
                     </view>
@@ -44,9 +71,14 @@
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <connections>
+                <outlet property="glassEffectButton" destination="jkB-zh-qcW" id="jtj-uH-l8y"/>
+                <outlet property="glassEffectLabel" destination="TPp-YP-0rJ" id="SG5-SS-wac"/>
                 <outlet property="titleLabel" destination="MXp-Si-wsB" id="bbf-4K-yXJ"/>
             </connections>
             <point key="canvasLocation" x="73" y="20"/>
         </tableViewCell>
     </objects>
+    <resources>
+        <image name="chevron.right" catalog="system" width="97" height="128"/>
+    </resources>
 </document>

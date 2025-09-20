@@ -197,6 +197,10 @@ class ExtractAudioViewVC: UIViewController {
         }
     }
 
+    @objc func handleGlassEffectChange(_ notification: Notification) {
+        self.applyGlassEffect(to: self.downloadAudioView)
+        self.applyGlassEffect(to: self.saveAudioView)
+    }
 
     
     private func setUpUI() {
@@ -205,6 +209,14 @@ class ExtractAudioViewVC: UIViewController {
         self.musicImage.cornerRadius = 20
         self.musicImage.borderColor = .white
         self.musicImage.borderWidth = 1
+        
+        
+        NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handleGlassEffectChange(_:)),
+                name: .glassEffectChanged,
+                object: nil
+            )
         
         self.applyGlassEffect(to: self.downloadAudioView)
         self.applyGlassEffect(to: self.saveAudioView)
@@ -373,15 +385,24 @@ class ExtractAudioViewVC: UIViewController {
     
     func applyGlassEffect(to targetView: UIView) {
         
+        targetView.subviews
+                .filter { $0 is UIVisualEffectView }
+                .forEach { $0.removeFromSuperview() }
+        
         targetView.backgroundColor = .clear
         
         var effect = UIVisualEffect()
        
-       if #available(iOS 26.0, *) {
-           effect = UIGlassEffect(style: .clear)
-       } else {
-           effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
-       }
+        if UserDefaultsHelper.selectedGlassEffect == .none {
+            effect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+        } else {
+            
+            if #available(iOS 26.0, *) {
+                effect = UIGlassEffect(style: UserDefaultsHelper.selectedGlassEffect == .clear ? .clear : .regular)
+            } else {
+                effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
+            }
+        }
 //        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
 //        let blurView = UIVisualEffectView(effect: blurEffect)
        let blurView = UIVisualEffectView(effect: effect)

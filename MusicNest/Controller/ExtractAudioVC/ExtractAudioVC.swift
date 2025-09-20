@@ -130,6 +130,13 @@ class ExtractAudioVC: UIViewController {
         self.urlPasteTF.updatePlaceholder()
     }
     
+    @objc func handleGlassEffectChange(_ notification: Notification) {
+        self.applyGlassEffect(to: self.musicView)
+        self.applyGlassEffect(to: self.downloadAudioView)
+        self.applyGlassEffect(to: self.saveAudioView)
+        self.applyGlassEffect(to: self.ripAudioView)
+    }
+    
     private func setUpUI() {
         self.urlPasteBgView.cornerRadius = 10
         self.urlPasteBgView.borderColor = UIColor.white.withAlphaComponent(0.7)
@@ -141,6 +148,13 @@ class ExtractAudioVC: UIViewController {
         self.clearView.isCircle = true
         
         self.musicImage.cornerRadius = 10
+        
+        NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handleGlassEffectChange(_:)),
+                name: .glassEffectChanged,
+                object: nil
+            )
         
         self.applyGlassEffect(to: self.musicView)
         self.applyGlassEffect(to: self.downloadAudioView)
@@ -377,15 +391,24 @@ class ExtractAudioVC: UIViewController {
     
     func applyGlassEffect(to targetView: UIView) {
         
+        targetView.subviews
+                .filter { $0 is UIVisualEffectView }
+                .forEach { $0.removeFromSuperview() }
+        
         targetView.backgroundColor = .clear
         
         var effect = UIVisualEffect()
        
-       if #available(iOS 26.0, *) {
-           effect = UIGlassEffect(style: .clear)
-       } else {
-           effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
-       }
+        if UserDefaultsHelper.selectedGlassEffect == .none {
+            effect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+        } else {
+            
+            if #available(iOS 26.0, *) {
+                effect = UIGlassEffect(style: UserDefaultsHelper.selectedGlassEffect == .clear ? .clear : .regular)
+            } else {
+                effect = UIBlurEffect(style: .systemUltraThinMaterialLight) // Light, transparent blur
+            }
+        }
 //        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
 //        let blurView = UIVisualEffectView(effect: blurEffect)
        let blurView = UIVisualEffectView(effect: effect)

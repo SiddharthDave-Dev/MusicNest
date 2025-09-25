@@ -26,8 +26,8 @@ class SettingsVC: UIViewController {
         SettingsModel(id: 1, title: "Your Favorite Music"),
         SettingsModel(id: 2, title: "Privacy Policy"),
         SettingsModel(id: 3, title: "Terms & Conditions"),
-        SettingsModel(id: 4, title: "Select Music"),
-        SettingsModel(id: 5, title: "Glass Effect")
+        SettingsModel(id: 4, title: "Glass Effect"),
+        SettingsModel(id: 5, title: "Select Music")
     ]
     
     override func viewDidLoad() {
@@ -114,20 +114,41 @@ class SettingsVC: UIViewController {
 
 extension SettingsVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.settingsData.count
+        if #available(iOS 26.0, *) {
+            return settingsData.count
+        } else {
+            // Exclude the cell with id == 4 on older versions
+            return settingsData.filter { $0.id != 4 }.count
+        }
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        var displayData: [SettingsModel] // replace with your actual type
+        if #available(iOS 26.0, *) {
+            displayData = settingsData
+        } else {
+            displayData = settingsData.filter { $0.id != 4 }
+        }
+        
+        let data = displayData[indexPath.row]
+        
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsTVC", for: indexPath) as? SettingsTVC else {
             return UITableViewCell()
         }
-        cell.selectionStyle = .none
         
-        cell.configureUI(self.settingsData[indexPath.row])
-        cell.glassEffectLabel.isHidden = !(self.settingsData[indexPath.row].id == 5)
+        cell.selectionStyle = .none
+        cell.configureUI(data)
+        
+        // glassEffectLabel visible only for iOS 26+
+        if #available(iOS 26.0, *) {
+            cell.glassEffectLabel.isHidden = !(data.id == 4)
+        } else {
+            cell.glassEffectLabel.isHidden = true
+        }
         
         return cell
     }
+
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 60
@@ -172,44 +193,10 @@ extension SettingsVC: UITableViewDelegate, UITableViewDataSource {
             }) { _ in
                 favoriteVC.didMove(toParent: parentVC)
             }
-        } else if data.id == 4 {
+        } else if data.id == 5 {
             let pickerView = AudioPickerView(container: AppDelegate.sharedContainer, presentingVC: self)
             pickerView.delegate = self
             self.view.addSubview(pickerView)
-        } else if data.id == 5 {
-            
-                let menu = UIMenu(title: "Glass Effect", children: [
-                    UIAction(title: "Regular", image: UIImage(systemName: "circle.fill")) { _ in
-                        if #available(iOS 26.0, *) {
-//                            let glassEffect = UIGlassEffect(style: .regular)
-//                            self.applyEffect(glassEffect)
-                        } else {
-                            let blur = UIBlurEffect(style: .systemUltraThinMaterialLight)
-//                            self.applyEffect(blur)
-                        }
-                    },
-                    UIAction(title: "Clear", image: UIImage(systemName: "circle.dotted")) { _ in
-                        if #available(iOS 26.0, *) {
-//                            let glassEffect = UIGlassEffect(style: .clear)
-//                            self.applyEffect(glassEffect)
-                        } else {
-//                            let blur = UIBlurEffect(style: .systemMaterialLight)
-//                            self.applyEffect(blur)
-                        }
-                    },
-                    UIAction(title: "None", image: UIImage(systemName: "xmark")) { _ in
-//                        self.removeEffect()
-                    }
-                ])
-
-                // Create a button as an anchor for the menu
-                let menuButton = UIButton(type: .system)
-                menuButton.showsMenuAsPrimaryAction = true
-                menuButton.menu = menu
-
-                // Present the menu immediately
-                menuButton.sendActions(for: .touchUpInside)
-
         } else {
             
         }

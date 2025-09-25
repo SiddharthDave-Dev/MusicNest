@@ -117,13 +117,14 @@ class HomeVC: UIViewController {
             self.sortView.layer.cornerRadius = 10
             self.sortView.clipsToBounds = true
 
-            let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
-            let effectView = UIVisualEffectView(effect: blurEffect)
-            effectView.frame = sortView.bounds
-            effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//            let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+//            let effectView = UIVisualEffectView(effect: blurEffect)
+//            effectView.frame = sortView.bounds
+//            effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
-            effectView.backgroundColor = .systemGray.withAlphaComponent(0.5)
-            sortView.insertSubview(effectView, at: 0)
+            sortView.backgroundColor = .systemGray.withAlphaComponent(0.5)
+            
+//            sortView.insertSubview(effectView, at: 0)
         } else {
             if #available(iOS 26.0, *) {
                 self.sortView.layer.cornerRadius = 10
@@ -133,19 +134,22 @@ class HomeVC: UIViewController {
                 let effectView = UIVisualEffectView(effect: glassEffect)
                 effectView.frame = sortView.bounds
                 effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                
+                effectView.backgroundColor = .clear
+                effectView.layer.cornerRadius = 10
+                sortView.backgroundColor = .clear
                 sortView.insertSubview(effectView, at: 0) // put effect behind other content
             } else {
                 self.sortView.layer.cornerRadius = 10
                 self.sortView.clipsToBounds = true
                 
-                let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
-                let effectView = UIVisualEffectView(effect: blurEffect)
-                effectView.frame = sortView.bounds
-                effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//                let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+//                let effectView = UIVisualEffectView(effect: blurEffect)
+//                effectView.frame = sortView.bounds
+//                effectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
                 
-                effectView.backgroundColor = .systemGray.withAlphaComponent(0.5)
-                sortView.insertSubview(effectView, at: 0)
+                sortView.backgroundColor = .systemGray.withAlphaComponent(0.5)
+                
+//                sortView.insertSubview(effectView, at: 0)
             }
         }
     }
@@ -267,16 +271,21 @@ class HomeVC: UIViewController {
     //    }
     
     private func handleSortSelection(_ selectedOption: SortOption) {
-        
+        self.applySortViewEffect()
         if currentSort == selectedOption {
             // Re-click: reset to unsorted
             currentSort = .none
-            sortView.backgroundColor = .systemGray.withAlphaComponent(0.5)
+            if UserDefaultsHelper.selectedGlassEffect == .none {
+                sortView.backgroundColor = .systemGray.withAlphaComponent(0.5)
+            } else {
+                sortView.backgroundColor = .clear
+            }
+            
             //                sortLabel.text = "Sort"
             resetToUnsortedData()
         } else {
             currentSort = selectedOption
-            sortView.backgroundColor = UIColor.orange.withAlphaComponent(0.3)
+            sortView.backgroundColor = UIColor.orange.withAlphaComponent(1.0)
             switch selectedOption {
             case .date:
                 self.data = self.originalData

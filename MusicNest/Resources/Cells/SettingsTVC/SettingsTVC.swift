@@ -28,7 +28,7 @@ class SettingsTVC: UITableViewCell {
     func configureUI(_ settingsData: SettingsModel) {
         self.titleLabel.text = settingsData.title
         self.glassEffectLabel.text = UserDefaultsHelper.selectedGlassEffect.rawValue
-        if settingsData.id == 5 {
+        if settingsData.id == 4 {
             setupGlassEffectMenu()
         }
     }

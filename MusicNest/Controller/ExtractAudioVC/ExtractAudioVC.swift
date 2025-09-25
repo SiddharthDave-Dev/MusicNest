@@ -226,7 +226,7 @@ class ExtractAudioVC: UIViewController {
         
         // Step 2: Fetch audio stream
         do {
-            let video = try await YouTube(url: youtubeURL)
+            let video = try await YouTube(url: youtubeURL, methods: [.local, .remote])
             let streams = try await video.streams
             let audioOnlyStreams = streams.filterAudioOnly()
             print("🎧 Audio-only streams: \(audioOnlyStreams)")

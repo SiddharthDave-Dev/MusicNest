@@ -76,5 +76,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     
+    func applicationWillTerminate(_ application: UIApplication) {
+        if let tabBarVC = UIApplication.shared.windows.first?.rootViewController as? TabbarVC {
+            let currentTime = tabBarVC.audioPlayer?.currentTime ?? 0
+            let duration = tabBarVC.audioPlayer?.duration ?? 0
+            print("background - Played \(tabBarVC.formatTime(currentTime)) / \(tabBarVC.formatTime(duration))")
+        } else {
+            print("Terminated - TabbarVC not found")
+        }
+    }
+
 }
 
